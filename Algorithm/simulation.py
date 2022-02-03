@@ -3,7 +3,6 @@ from constants import *
 from obstacles import *
 from robot import Robot, map
 
-
 def print_map():
     for row in range(20):
         print(map[row])
@@ -20,6 +19,7 @@ def move_backward():
     print_map()
 
 def main():
+    #Terminal Simulation
     simulation_on = True
     print_map()
     while simulation_on is True:
