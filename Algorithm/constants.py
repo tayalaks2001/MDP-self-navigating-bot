@@ -20,6 +20,7 @@ num_cols = int(maze_width/grid_cell_size)
 # robot specifications
 car_width = 30
 car_height = 30
+turning_radius = 25
 
 # rows and cols covered by rover
 car_width_in_cells = int(car_width/grid_cell_size)

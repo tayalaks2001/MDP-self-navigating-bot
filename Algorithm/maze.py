@@ -93,5 +93,5 @@ class Maze:
         return self.grid[x][y] != 0
     
 
-    def cell_is_empty(self, x, y):
-        return not self.is_obstacle(x,y)
+    def cell_is_valid(self, x, y):
+        return x>=0 and x<num_rows and y>=0 and y<num_cols and not self.is_obstacle(x,y)
