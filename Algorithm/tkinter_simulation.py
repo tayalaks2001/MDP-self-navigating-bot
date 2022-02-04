@@ -13,8 +13,8 @@ canvas.pack()
 
 #Set Image File to Variable
 dirname = os.path.dirname(__file__)
-img_0 = PhotoImage(file="Image\\Image_0.png")
-img_1 = PhotoImage(file="Image\\Image_1.png")
+img_0 = PhotoImage(file=os.path.join(dirname,'Image','Image_0.png'))
+img_1 = PhotoImage(file=os.path.join(dirname,'Image','Image_1.png'))
 
 #Create and Set Label
 label4_str = StringVar()

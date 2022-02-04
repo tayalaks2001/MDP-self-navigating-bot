@@ -1,3 +1,4 @@
 # ignore all .pyc files in algos folder
 Algorithm/*.pyc
 Algorithm/__pycache__/
+Algorithm/test.py

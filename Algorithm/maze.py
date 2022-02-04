@@ -1,5 +1,5 @@
 from constants import *
-from random import randint
+import logging
 
 from obstacles import Obstacle
 
@@ -7,8 +7,8 @@ class Maze:
     
     def __init__(self):
         self.obstacles = [[0 for _ in range(3)] for _ in range(num_obstacles)]
-        self.num_rows = int(maze_width/grid_cell_width)
-        self.num_cols = int(maze_height/grid_cell_height)
+        self.num_rows = int(maze_width/grid_cell_size)
+        self.num_cols = int(maze_height/grid_cell_size)
         self.grid = [[0 for _ in range(self.num_rows)] 
                 for _ in range(self.num_cols)]
         self.waypoints = [[0 for _ in range(3)] for _ in range(num_obstacles)]
@@ -42,20 +42,25 @@ class Maze:
         for obstacle in self.obstacles:
             obs_x,obs_y,obs_dir = obstacle
             fin_x, fin_y, fin_dir = obs_x, obs_y, obs_dir
-            if obs_dir == 'N':
-                fin_y += int(dist_from_obst/grid_cell_height)
-                fin_dir = 'S'
-            elif obs_dir == 'S':
-                fin_y -= int(dist_from_obst/grid_cell_height)
-                fin_dir = 'N'
-            elif obs_dir == 'E':
-                fin_x += int(dist_from_obst/grid_cell_height)
-                fin_dir = 'W'
-            elif obs_dir == 'W':
-                fin_x -= int(dist_from_obst/grid_cell_height)
-                fin_dir = 'E'
+            if obs_dir == NORTH:
+                fin_x -= int(dist_from_obst/grid_cell_size)
+                fin_dir = SOUTH
+            elif obs_dir == SOUTH:
+                fin_x += int(dist_from_obst/grid_cell_size)
+                fin_dir = NORTH
+            elif obs_dir == EAST:
+                fin_y += int(dist_from_obst/grid_cell_size)
+                fin_dir = WEST
+            elif obs_dir == WEST:
+                fin_y -= int(dist_from_obst/grid_cell_size)
+                fin_dir = EAST
 
-            waypoints += [fin_x,fin_y,fin_dir]
+            if fin_x>=num_cols or fin_x<0 or fin_y>=num_rows or fin_y<0:
+                logging.ERROR("Waypoint generated is out of bounds! Can't reach image on obstacle\
+                                [{x},{y},{dir}]",obs_x,obs_y,obs_dir)
+                return
+            
+            waypoints.append([fin_x,fin_y,fin_dir])
 
         self.waypoints = waypoints
 
