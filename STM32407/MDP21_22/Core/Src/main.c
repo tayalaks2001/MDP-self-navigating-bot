@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "math.h"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -25,6 +26,7 @@
 #include <stdio.h>
 #include "oled.h"
 /* USER CODE END Includes */
+
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -133,6 +135,9 @@ int global_pwmL = 0;
 int global_pwmR = 0;
 int motor_case = 0;
 
+int journey = 0;
+int cur_travelled_distance_mm = 0;
+
 /*Encoder Variables*/
 int Rcnt1, Rcnt2, Rdiff;
 int Lcnt1, Lcnt2, Ldiff;
@@ -177,16 +182,18 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN1_Init();
   MX_ADC1_Init();
-  MX_TIM2_Init();
-  MX_TIM8_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
+  MX_TIM8_Init();
   MX_DMA_Init();
   MX_USART3_UART_Init();
-  MX_TIM3_Init();
-  MX_DMA_Init();
-  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
   HAL_UART_Receive_DMA (&huart3, aRxBuffer, 20);
 
@@ -239,6 +246,7 @@ int main(void)
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
+
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
@@ -808,12 +816,12 @@ static void MX_GPIO_Init(void)
 
 void motor_readjust()
 {
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-	htim1.Instance->CCR4 = 130; // left
+	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+	wheels_left(60);
 	osDelay(100);
-	htim1.Instance->CCR4 = 170; //Right
+	wheels_right(60);
 	osDelay(100);
-	htim1.Instance->CCR4 = 148;//Center;
+	wheels_straight(60);
 	osDelay(1000);
 }
 
@@ -828,12 +836,62 @@ void motor_forward(int pwmL , int pwmR)
 	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
 	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
 
+
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
 }
 
-void motor_backward(int pwmL, int pwmR)
+void move_forward(unsigned long milliseconds)
 {
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	 uint32_t t_start = HAL_GetTick();
+	 while(HAL_GetTick()-t_start < milliseconds){
+		 doPID();
+	 }
+	 motor_stop();
+}
+void move_forward_distance(int distance_mm)
+{
+	cur_travelled_distance_mm = 0;
+	int expectedThreshold = distance_mm * (1584 / 210);
+
+	  //LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	 while(cur_travelled_distance_mm < expectedThreshold){
+		doPID();
+	 }
+	 motor_stop();
+}
+
+void move_forward_right(int distance_mm, int degree){
+	wheels_right(degree);
+	move_forward_distance(distance_mm);
+	wheels_straight();
+}
+
+void move_forward_left(int distance_mm, int degree){
+	wheels_left(degree);
+	move_forward_distance(distance_mm);
+	wheels_straight();
+}
+
+void move_backward_distance(int distance_mm)
+{
+	cur_travelled_distance_mm = 0;
+	int expectedThreshold = distance_mm * (1584 / 210);
 
 	//LEFT WHEELS
 	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
@@ -843,105 +901,28 @@ void motor_backward(int pwmL, int pwmR)
 	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
 	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
 
-	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+	 while(cur_travelled_distance_mm < expectedThreshold){
+		doPID();
+	 }
+	 motor_stop();
 }
 
-void motor_90degreesleft(int pwmL, int pwmR)
-{
-	htim1.Instance->CCR4 = 90;
-	osDelay(10);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-	osDelay(1800);
-
-	htim1.Instance->CCR4 = 150;
-	osDelay(100);
-	motor_forward(pwmL+2000, pwmR);
-	osDelay(2000);
-
+void move_backward_right(int distance_mm, int degree){
+	wheels_left(degree);
+	move_backward_distance(distance_mm);
+	wheels_straight();
 }
 
-void motor_90degreesright(int pwmL, int pwmR)
-{
-	htim1.Instance->CCR4 = 230;
-	osDelay(10);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-	osDelay(1800);
-
-	htim1.Instance->CCR4 = 150;
-	osDelay(100);
-	motor_forward(pwmL, pwmR+2000);
-	osDelay(2000);
-}
-
-void motor_180degrees_right(int pwmL, int pwmR)
-{
-	htim1.Instance->CCR4 = 230;
-	osDelay(10);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-	osDelay(3800);
-
-	htim1.Instance->CCR4 = 150;
-	osDelay(100);
-	motor_forward(pwmL, pwmR+2000);
-	osDelay(2000);
-}
-
-void motor_180_degrees_left(int pwmL, int pwmR)
-{
-	htim1.Instance->CCR4 = 90;
-		osDelay(10);
-		//LEFT WHEELS
-		HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-		//RIGHT WHEELS
-		HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-		osDelay(3800);
-
-		htim1.Instance->CCR4 = 150;
-		osDelay(100);
-		motor_forward(pwmL, pwmR+2000);
-		osDelay(2000);
+void move_backward_left(int distance_mm, int degree){
+	wheels_right(degree);
+	move_backward_distance(distance_mm);
+	wheels_straight();
 }
 
 void motor_stop()
 {
+	 motor_case = 0;
+
 	//LEFT WHEELS
 	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
      HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
@@ -952,7 +933,6 @@ void motor_stop()
 
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0);
-
 }
 
 
@@ -968,7 +948,6 @@ void motor_stop()
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	OLED_ShowString(10, 50, (uint8_t*)"CALLBACK");
-
     HAL_UART_Transmit(&huart3, aRxBuffer, 20, 100);
     HAL_UART_Receive_DMA(&huart3, aRxBuffer, 20);
 }
@@ -1028,10 +1007,9 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
 	uint8_t ch = 'A';
   /* Infinite loop */
-  OLED_ShowString(10, 50, (uint8_t*)"DEFAULT TASK");
   for(;;)
   {
-	  //HAL_UART_Transmit(&huart3, (uint8_t *)&ch,1,0xFFFF);
+	  HAL_UART_Transmit(&huart3, (uint8_t *)&ch,1,0xFFFF);
 	  //HAL_UART_Receive_IT(&huart3, (uint8_t*)aRxBuffer, 20);
 	  osDelay(1000);
 	  if(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)==0){
@@ -1040,8 +1018,55 @@ void StartDefaultTask(void *argument)
 	  	HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
 	  	//osDelay(200);
 	  }
+
    }
   /* USER CODE END 5 */
+}
+
+uint16_t Analog = 0;
+uint16_t pwm;
+uint16_t set = 250;
+double kp=8;ki=1;kd=5;
+double throttle=1500;
+float pid_p = 0, pid_i = 0, pid_d = 0, PID;
+float error, previous_error;
+unsigned long t_now, t_last, dt;
+
+void doPID(){
+	 if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
+	        Analog=HAL_ADC_GetValue(&hadc1)/10;
+	    }
+	    t_last = t_now;
+	    t_now = HAL_GetTick();
+	    dt = (t_now - t_last) - 1000;
+	    error = Analog - set;
+	    pid_p = kp * error;
+	    if(-10 < error && error < 10){
+	        pid_i = pid_i + (ki*error);
+	    }
+	    pid_d = kd * ((error - previous_error) / dt);
+	    PID = pid_p + pid_i + pid_d;
+
+	    if(PID <- 1000){
+	        PID=-1000;
+	    }
+	    if(PID > 100){
+	        PID=1000;
+	    }
+	    pwm = throttle-PID;
+	    if(pwm < 500){
+	        pwm = 500;
+	    }
+	    else if(pwm > 2000){
+	        pwm = 2000;
+	    }
+
+
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+		previous_error = error;
+
+	    HAL_Delay(100);
 }
 
 /* USER CODE BEGIN Header_show */
@@ -1062,7 +1087,8 @@ void show(void *argument)
     sprintf(ultra,"Distance :%5d\0",F_Distance);
     OLED_ShowString(10,10,ultra);
     OLED_Refresh_Gram();
-     osDelay(100);  }
+    osDelay(10);
+  }
   /* USER CODE END show */
 }
 
@@ -1095,6 +1121,15 @@ void encoder_task(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	 //~1,584 = 1 full circumference revolution/ ~ 21cm
+	 // ~7.5428571428571428571428571428571 per mm @ throttle = 200
+	 char output[12];
+	 sprintf(output,"%05d",__HAL_TIM_GET_COUNTER(&htim2));
+	 OLED_ShowString(10, 40,output);
+	 cur_travelled_distance_mm = (65535 - __HAL_TIM_GET_COUNTER(&htim2));
+	 char output1[12];
+	 sprintf(output1,"%05d",__HAL_TIM_GET_COUNTER(&htim3));
+	 OLED_ShowString(10, 50,output1);
 	 if(HAL_GetTick()-tick > 1000)
 	 {
 		 Lcnt2 = __HAL_TIM_GET_COUNTER(&htim2);
@@ -1113,7 +1148,6 @@ void encoder_task(void *argument)
 				 }
 			 }
 		 }
-
 		 else
 		 {
 			 if(Lcnt2 > Lcnt1){
@@ -1195,8 +1229,8 @@ void move_left_right(void *argument)
   /* USER CODE BEGIN move_left_right */
   /* Infinite loop */
 
-	HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
+	//HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+	//HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
 
 	motor_readjust();
 
@@ -1206,8 +1240,7 @@ void move_left_right(void *argument)
 	uint8_t a[20];
 
 	//Test 90/180 degree turn
-	osDelay(1000);
-	motor_case = 9;
+	motor_case = 10;
 	for(;;){
 //		error = desired_enc - Ldiff;
 //		global_pwmL += kp * error;
@@ -1223,80 +1256,78 @@ void move_left_right(void *argument)
 		switch(motor_case){
 
 			case 0://Motor_stop
+				//OLED_ShowString(10, 50, (uint8_t*)"[0] Motor Stop");
 				motor_stop();
 				break;
 
 			case 1://MOVE FORWARD
 				//motor_readjust();
-				motor_forward(global_pwmL, global_pwmR);
+				OLED_ShowString(10, 50, (uint8_t*)"[1] Move forward");
+				move_forward_distance(500);
 				//osDelay(10);
 				break;
 			case 2://MOVE BACKWARD
 				//motor_readjust();
-				global_pwmR = 1000;
-				global_pwmL = 1000;
-				motor_backward(global_pwmL, global_pwmR);
+				OLED_ShowString(10, 50, (uint8_t*)"[2] Move backward");
+				move_backward_distance(500);
 				//osDelay(2000);
 				break;
 
 			case 3://MOVE FORWARD-LEFT
 				//motor_readjust();
-				global_pwmR = 1000;
-				global_pwmL = 1000;
-				htim1.Instance->CCR4 = 130;
-				osDelay(100);
-				motor_forward(global_pwmL, global_pwmR);
+				OLED_ShowString(10, 50, (uint8_t*)"[3] Move forwardleft");
+				move_forward_left(500, 90);
 				//osDelay(2000);
 				break;
 
 			case 4: //MOVE FORWARD-RIGHT
 				//motor_readjust();
-				global_pwmR = 1000;
-				global_pwmL = 1000;
-				htim1.Instance->CCR4 = 180;
-				osDelay(100);
-				motor_forward(global_pwmL, global_pwmR);
+				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forwardright");
+				move_forward_right(500, 90);
 				//osDelay(2000);
 				break;
 
 			case 5: //MOVE BACKWARDS LEFT
 				//motor_readjust();
-				global_pwmR = 1000;
-				global_pwmL = 1000;
-				htim1.Instance->CCR4 = 130;
-				osDelay(100);
-				motor_backward(global_pwmL, global_pwmR);
+				OLED_ShowString(10, 50, (uint8_t*)"[5] Move backleft");
+				move_backward_left(500, 90);
 				//osDelay(2000);
 				break;
 
 			case 6: //MOVE BACKWARDS RIGHT
 				//motor_readjust();
-				global_pwmR = 1000;
-				global_pwmL = 1000;
-				htim1.Instance->CCR4 = 180;
-				osDelay(100);
-				motor_backward(global_pwmL, global_pwmR);
-				//osDelay(2000);
+				OLED_ShowString(10, 50, (uint8_t*)"[6] Move backright");
+				move_backward_right(500, 90);
 				break;
 
 			case 7: //90 DEG MOVE LEFT
+
+				OLED_ShowString(10, 50, (uint8_t*)"[7] Move 90 left");
 				//motor_readjust();
 				global_pwmR = 2000;
 				global_pwmL = 0;
-				motor_90degreesleft(global_pwmL, global_pwmR);
+				//motor_90degreesleft(global_pwmL, global_pwmR);
+				break;
 			case 8: // 90 DEG MOVE RIGHT
+				OLED_ShowString(10, 50, (uint8_t*)"[8] Move 90 right");
 				global_pwmR = 0;
 				global_pwmL = 2000;
-				motor_90degreesright(global_pwmL, global_pwmR);
+				//motor_90degreesright(global_pwmL, global_pwmR);
+				break;
 			case 9:
+				OLED_ShowString(10, 50, (uint8_t*)"[9] Flip");
 				global_pwmR = 0;
 				global_pwmL = 2000;
-				motor_180degrees_right(global_pwmL, global_pwmR);
+				//motor_180degrees_right(global_pwmL, global_pwmR);
+				break;
+			case 10:
+				move_forward_distance(3000);
+				//move_forward(3900);
+				//move_right(2000, 90);
+				break;
 			default:
-				htim1.Instance->CCR4 = 150;
-				osDelay(100);
+				wheels_straight();
 				motor_stop();
-				motor_case = 0;
 				break;
 
 
@@ -1308,6 +1339,17 @@ void move_left_right(void *argument)
 	}
 
   /* USER CODE END move_left_right */
+}
+
+
+void wheels_straight(){
+	htim1.Instance->CCR4 = 146;
+}
+void wheels_right(int degree){
+	htim1.Instance->CCR4 = 146 + degree;
+}
+void wheels_left(int degree){
+	htim1.Instance->CCR4 = 146 - degree;
 }
 
 /* USER CODE BEGIN Header_ultra_sonic_task */
