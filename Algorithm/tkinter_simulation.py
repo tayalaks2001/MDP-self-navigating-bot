@@ -3,6 +3,7 @@ from constants import *
 from obstacles import *
 from robot import Robot, map
 from tkinter import *
+import os
 
 window = Tk()
 window.title("Simulation")
@@ -11,6 +12,7 @@ canvas = Canvas(window, width = 400, height = 510)
 canvas.pack()
 
 #Set Image File to Variable
+dirname = os.path.dirname(__file__)
 img_0 = PhotoImage(file="Image\\Image_0.png")
 img_1 = PhotoImage(file="Image\\Image_1.png")
 

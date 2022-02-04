@@ -1,2 +1,3 @@
-# ignore all .pyc files in entire repo
-**/*.pyc
+# ignore all .pyc files in algos folder
+Algorithm/*.pyc
+Algorithm/__pycache__/
