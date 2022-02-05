@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "math.h"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -26,7 +25,6 @@
 #include <stdio.h>
 #include "oled.h"
 /* USER CODE END Includes */
-
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -77,13 +75,6 @@ const osThreadAttr_t EncoderTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for Move_LR */
-osThreadId_t Move_LRHandle;
-const osThreadAttr_t Move_LR_attributes = {
-  .name = "Move_LR",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
 /* Definitions for UltraSonic */
 osThreadId_t UltraSonicHandle;
 const osThreadAttr_t UltraSonic_attributes = {
@@ -91,10 +82,10 @@ const osThreadAttr_t UltraSonic_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for UART3 */
-osThreadId_t UART3Handle;
-const osThreadAttr_t UART3_attributes = {
-  .name = "UART3",
+/* Definitions for motortask */
+osThreadId_t motortaskHandle;
+const osThreadAttr_t motortask_attributes = {
+  .name = "motortask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -117,9 +108,8 @@ static void MX_TIM4_Init(void);
 void StartDefaultTask(void *argument);
 void show(void *argument);
 void encoder_task(void *argument);
-void move_left_right(void *argument);
 void ultra_sonic_task(void *argument);
-void uart3(void *argument);
+void Motor_Task(void *argument);
 
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -131,9 +121,7 @@ uint8_t aRxBuffer[20] = {0};
 uint8_t uart_ready = 1;
 
 /* Motor Variables */
-int global_pwmL = 0;
-int global_pwmR = 0;
-int motor_case = 0;
+int motor_case = 10;
 
 int journey = 0;
 int cur_travelled_distance_mm = 0;
@@ -182,20 +170,20 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN1_Init();
   MX_ADC1_Init();
-  MX_TIM1_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
   MX_TIM8_Init();
-  MX_DMA_Init();
+  MX_TIM1_Init();
   MX_USART3_UART_Init();
+  MX_TIM3_Init();
+  MX_DMA_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
-  HAL_UART_Receive_DMA (&huart3, aRxBuffer, 20);
+  //HAL_UART_Receive_IT (&huart3, aRxBuffer, 12);
 
   /* USER CODE END 2 */
 
@@ -228,14 +216,11 @@ int main(void)
   /* creation of EncoderTask */
   EncoderTaskHandle = osThreadNew(encoder_task, NULL, &EncoderTask_attributes);
 
-  /* creation of Move_LR */
-  Move_LRHandle = osThreadNew(move_left_right, NULL, &Move_LR_attributes);
-
   /* creation of UltraSonic */
   UltraSonicHandle = osThreadNew(ultra_sonic_task, NULL, &UltraSonic_attributes);
 
-  /* creation of UART3 */
-  UART3Handle = osThreadNew(uart3, NULL, &UART3_attributes);
+  /* creation of motortask */
+  motortaskHandle = osThreadNew(Motor_Task, NULL, &motortask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -246,7 +231,6 @@ int main(void)
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
-
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
@@ -254,15 +238,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 
-
-
-  while (1){
-	  HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
-	  HAL_Delay(2000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+
   /* USER CODE END 3 */
 }
 
@@ -728,7 +707,6 @@ static void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-  //USART3->CR1 |= (USART_CR1_TE | USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE);
   /* USER CODE END USART3_Init 2 */
 
 }
@@ -814,6 +792,69 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+
+
+void doPID(){
+
+	uint16_t Analog = 0;
+	uint16_t pwm;
+	uint16_t set = 250;
+	double kp=8;
+	double ki=1;
+	double kd=5;
+	double throttle=1500;
+	float pid_p = 0, pid_i = 0, pid_d = 0, PID;
+	float error, previous_error;
+	unsigned long t_now, t_last, dt;
+
+	 if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
+	        Analog=HAL_ADC_GetValue(&hadc1)/10;
+	    }
+	    t_last = t_now;
+	    t_now = HAL_GetTick();
+	    dt = (t_now - t_last) - 1000;
+	    error = Analog - set;
+	    pid_p = kp * error;
+	    if(-10 < error && error < 10){
+	        pid_i = pid_i + (ki*error);
+	    }
+	    pid_d = kd * ((error - previous_error) / dt);
+	    PID = pid_p + pid_i + pid_d;
+
+	    if(PID <- 1000){
+	        PID=-1000;
+	    }
+	    if(PID > 100){
+	        PID=1000;
+	    }
+	    pwm = throttle-PID;
+	    if(pwm < 500){
+	        pwm = 500;
+	    }
+	    else if(pwm > 2000){
+	        pwm = 2000;
+	    }
+
+
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+		previous_error = error;
+
+	    HAL_Delay(100);
+}
+void wheels_straight(){
+	htim1.Instance->CCR4 = 146;
+	osDelay(100);
+}
+void wheels_right(int degree){
+	htim1.Instance->CCR4 = 146 + degree;
+	osDelay(100);
+}
+void wheels_left(int degree){
+	htim1.Instance->CCR4 = 146 - degree;
+	osDelay(100);
+}
+
 void motor_readjust()
 {
 	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
@@ -826,20 +867,6 @@ void motor_readjust()
 }
 
 
-void motor_forward(int pwmL , int pwmR)
-{
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-
-	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-}
 
 void move_forward(unsigned long milliseconds)
 {
@@ -876,15 +903,15 @@ void move_forward_distance(int distance_mm)
 	 motor_stop();
 }
 
-void move_forward_right(int distance_mm, int degree){
+void move_forward_right(int time_mili, int degree){
 	wheels_right(degree);
-	move_forward_distance(distance_mm);
+	move_forward(time_mili);
 	wheels_straight();
 }
 
-void move_forward_left(int distance_mm, int degree){
+void move_forward_left(int time_mili, int degree){
 	wheels_left(degree);
-	move_forward_distance(distance_mm);
+	move_forward(time_mili);
 	wheels_straight();
 }
 
@@ -921,35 +948,36 @@ void move_backward_left(int distance_mm, int degree){
 
 void motor_stop()
 {
-	 motor_case = 0;
-
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0);
 }
 
-
-/*void HAL_UART_RxCpltCallBack(UART_HandleTypeDef *huart)
-{
-	Prevent unused argument(s) compilation warning
-	UNUSED(huart);
-		HAL_UART_Transmit(&huart,"OK\n",20,0xFFFF);
-		  HAL_UART_Receive_DMA (&huart3, aRxBuffer, 20);
-
-}*/
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	OLED_ShowString(10, 50, (uint8_t*)"CALLBACK");
-    HAL_UART_Transmit(&huart3, aRxBuffer, 20, 100);
-    HAL_UART_Receive_DMA(&huart3, aRxBuffer, 20);
+	/*Prevent unused argument(s) compilation warning */
+	UNUSED(huart);
+	//OLED_ShowString(20, 50, (uint8_t*)"CALLBACK");
+   if(uart_ready == 1)
+   {
+	   uart_ready = 0;
+	   HAL_UART_Transmit(&huart3, aRxBuffer, 20, 0xFFFF);
+	   if((aRxBuffer[0] == '0' || aRxBuffer[0] == '1' || aRxBuffer[0] == '2' || aRxBuffer[0] == '3' || aRxBuffer[0] == '4' ||
+		aRxBuffer[0] == '5') && aRxBuffer[0]!='\0' )
+	   {
+		   motor_case = aRxBuffer[0] - 48;
+		   osDelay(1000);
+	   }
+	   else
+	   {
+		   HAL_UART_Transmit(&huart3,"Error\n", sizeof("Error\n"), 0xFFFF);
+		   osDelay(1000);
+		   uart_ready = 1;
+		   osDelay(1000);
+	   }
+   }
+   uart_ready = 1;
+   sprintf(aRxBuffer[0],'\0');
+   HAL_UART_Receive_IT(&huart3, aRxBuffer, 1);
 }
 
 
@@ -1005,68 +1033,26 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-	uint8_t ch = 'A';
   /* Infinite loop */
+
   for(;;)
   {
-	  HAL_UART_Transmit(&huart3, (uint8_t *)&ch,1,0xFFFF);
-	  //HAL_UART_Receive_IT(&huart3, (uint8_t*)aRxBuffer, 20);
-	  osDelay(1000);
-	  if(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)==0){
-	  	osDelay(300);
-	  	motor_case++;
-	  	HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
-	  	//osDelay(200);
+	  if(uart_ready == 1)
+	  {
+		  HAL_UART_Transmit(&huart3, "Enter command:\r\n", sizeof("Enter command:\r\n"), 100);
+		  HAL_UART_Receive_IT(&huart3, aRxBuffer, 1);
 	  }
+
+	  else
+	  {
+		  HAL_UART_Transmit(&huart3, "\nUART is not ready\r\n", sizeof("\nUART is not ready\r\n"), 100);
+	  }
+
+	  HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+	  osDelay(2000);
 
    }
   /* USER CODE END 5 */
-}
-
-uint16_t Analog = 0;
-uint16_t pwm;
-uint16_t set = 250;
-double kp=8;ki=1;kd=5;
-double throttle=1500;
-float pid_p = 0, pid_i = 0, pid_d = 0, PID;
-float error, previous_error;
-unsigned long t_now, t_last, dt;
-
-void doPID(){
-	 if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
-	        Analog=HAL_ADC_GetValue(&hadc1)/10;
-	    }
-	    t_last = t_now;
-	    t_now = HAL_GetTick();
-	    dt = (t_now - t_last) - 1000;
-	    error = Analog - set;
-	    pid_p = kp * error;
-	    if(-10 < error && error < 10){
-	        pid_i = pid_i + (ki*error);
-	    }
-	    pid_d = kd * ((error - previous_error) / dt);
-	    PID = pid_p + pid_i + pid_d;
-
-	    if(PID <- 1000){
-	        PID=-1000;
-	    }
-	    if(PID > 100){
-	        PID=1000;
-	    }
-	    pwm = throttle-PID;
-	    if(pwm < 500){
-	        pwm = 500;
-	    }
-	    else if(pwm > 2000){
-	        pwm = 2000;
-	    }
-
-
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
-		previous_error = error;
-
-	    HAL_Delay(100);
 }
 
 /* USER CODE BEGIN Header_show */
@@ -1079,7 +1065,6 @@ void doPID(){
 void show(void *argument)
 {
   /* USER CODE BEGIN show */
-	uint8_t hello[20] = "Hello World!\0";
 	uint8_t ultra[20];
   /* Infinite loop */
   for(;;)
@@ -1208,148 +1193,12 @@ void encoder_task(void *argument)
 		 Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
 		 tick = HAL_GetTick();
 
-
-
 		  osDelay(1);
 	  }
+
   }
   osDelay(1000);
   /* USER CODE END encoder_task */
-}
-
-/* USER CODE BEGIN Header_move_left_right */
-/**
-* @brief Function implementing the Move_LR thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_move_left_right */
-void move_left_right(void *argument)
-{
-  /* USER CODE BEGIN move_left_right */
-  /* Infinite loop */
-
-	//HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-	//HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
-
-	motor_readjust();
-
-	uint8_t desired_enc = 100;
-	float kp = 0.8;
-	uint8_t error =0;
-	uint8_t a[20];
-
-	//Test 90/180 degree turn
-	motor_case = 10;
-	for(;;){
-//		error = desired_enc - Ldiff;
-//		global_pwmL += kp * error;
-//		sprintf(a,"LError: %d\0",error);
-//		OLED_ShowString(10,40,a);
-//
-//		error = desired_enc - Rdiff;
-//		global_pwmR += kp * error;
-//		sprintf(a,"RError: %d\0",error);
-//		OLED_ShowString(10,50,a);
-//
-//		motor_forward(global_pwmL, global_pwmR);
-		switch(motor_case){
-
-			case 0://Motor_stop
-				//OLED_ShowString(10, 50, (uint8_t*)"[0] Motor Stop");
-				motor_stop();
-				break;
-
-			case 1://MOVE FORWARD
-				//motor_readjust();
-				OLED_ShowString(10, 50, (uint8_t*)"[1] Move forward");
-				move_forward_distance(500);
-				//osDelay(10);
-				break;
-			case 2://MOVE BACKWARD
-				//motor_readjust();
-				OLED_ShowString(10, 50, (uint8_t*)"[2] Move backward");
-				move_backward_distance(500);
-				//osDelay(2000);
-				break;
-
-			case 3://MOVE FORWARD-LEFT
-				//motor_readjust();
-				OLED_ShowString(10, 50, (uint8_t*)"[3] Move forwardleft");
-				move_forward_left(500, 90);
-				//osDelay(2000);
-				break;
-
-			case 4: //MOVE FORWARD-RIGHT
-				//motor_readjust();
-				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forwardright");
-				move_forward_right(500, 90);
-				//osDelay(2000);
-				break;
-
-			case 5: //MOVE BACKWARDS LEFT
-				//motor_readjust();
-				OLED_ShowString(10, 50, (uint8_t*)"[5] Move backleft");
-				move_backward_left(500, 90);
-				//osDelay(2000);
-				break;
-
-			case 6: //MOVE BACKWARDS RIGHT
-				//motor_readjust();
-				OLED_ShowString(10, 50, (uint8_t*)"[6] Move backright");
-				move_backward_right(500, 90);
-				break;
-
-			case 7: //90 DEG MOVE LEFT
-
-				OLED_ShowString(10, 50, (uint8_t*)"[7] Move 90 left");
-				//motor_readjust();
-				global_pwmR = 2000;
-				global_pwmL = 0;
-				//motor_90degreesleft(global_pwmL, global_pwmR);
-				break;
-			case 8: // 90 DEG MOVE RIGHT
-				OLED_ShowString(10, 50, (uint8_t*)"[8] Move 90 right");
-				global_pwmR = 0;
-				global_pwmL = 2000;
-				//motor_90degreesright(global_pwmL, global_pwmR);
-				break;
-			case 9:
-				OLED_ShowString(10, 50, (uint8_t*)"[9] Flip");
-				global_pwmR = 0;
-				global_pwmL = 2000;
-				//motor_180degrees_right(global_pwmL, global_pwmR);
-				break;
-			case 10:
-				move_forward_distance(3000);
-				//move_forward(3900);
-				//move_right(2000, 90);
-				break;
-			default:
-				wheels_straight();
-				motor_stop();
-				break;
-
-
-		}
-
-		osDelay(10);
-
-
-	}
-
-  /* USER CODE END move_left_right */
-}
-
-
-void wheels_straight(){
-	htim1.Instance->CCR4 = 146;
-}
-void wheels_right(int degree){
-	htim1.Instance->CCR4 = 146 + degree;
-}
-void wheels_left(int degree){
-	htim1.Instance->CCR4 = 146 - degree;
 }
 
 /* USER CODE BEGIN Header_ultra_sonic_task */
@@ -1384,27 +1233,97 @@ void ultra_sonic_task(void *argument)
   /* USER CODE END ultra_sonic_task */
 }
 
-/* USER CODE BEGIN Header_uart3 */
+/* USER CODE BEGIN Header_Motor_Task */
 /**
-* @brief Function implementing the UART3 thread.
+* @brief Function implementing the motortask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_uart3 */
-void uart3(void *argument)
+/* USER CODE END Header_Motor_Task */
+void Motor_Task(void *argument)
 {
-  /* USER CODE BEGIN uart3 */
+  /* USER CODE BEGIN Motor_Task */
   /* Infinite loop */
+/*---------------------------MOTOR MOVEMENT-------------------------------------------------*/
 
   for(;;)
   {
-	if(uart_ready!=1 ){
-		//HAL_UART_Transmit_IT(&huart3, (uint8_t*)''
-	}
+		switch(motor_case){
+		/*---------------------------MOTOR STOP-------------------------------------------------*/
+			case 0://Motor_stop
+				OLED_ShowString(10, 50, (uint8_t*)"[0] Motor Stop");
+				motor_stop();
+				break;
+		/*---------------------------MOTOR FORWARD-------------------------------------------------*/
+			case 1://MOVE FORWARD
+				//OLED_ShowString(10, 50, (uint8_t*)"[1] Move forward");
+				motor_readjust();
+				move_forward_distance(500);
+				motor_stop();
+				osDelay(1000);
+				break;
+		/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
+			case 2://MOVE BACKWARD
+				//OLED_ShowString(10, 50, (uint8_t*)"[2] Move backward");
+				motor_readjust();
+				move_backward_distance(500);
+				break;
+		/*---------------------------MOTOR FORWARD LEFT-------------------------------------------------*/
+			case 3://MOVE FORWARD-LEFT
+				OLED_ShowString(10, 50, (uint8_t*)"[3] Move forwardleft");
+				move_forward_left(500, 90);
 
+				break;
+		/*---------------------------MOTOR FORWARD RIGHT-------------------------------------------------*/
+			case 4: //MOVE FORWARD-RIGHT
+				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forwardright");
+				move_forward_right(500, 90);
+				break;
+		/*---------------------------MOTOR BACKWARD LEFT-------------------------------------------------*/
+			case 5: //MOVE BACKWARDS LEFT
+				OLED_ShowString(10, 50, (uint8_t*)"[5] Move backleft");
+				move_backward_left(500, 90);
+				break;
+		/*---------------------------MOTOR BACKWARD RIGHT-------------------------------------------------*/
+			case 6: //MOVE BACKWARDS RIGHT
+				OLED_ShowString(10, 50, (uint8_t*)"[6] Move backright");
+				move_backward_right(500, 90);
+				break;
+		/*---------------------------MOTOR 90 Degrees Left-------------------------------------------------*/
+			case 7: //90 DEG MOVE LEFT
+				OLED_ShowString(10, 50, (uint8_t*)"[7] Move 90 left");
+				osDelay(1000);
+				break;
+		/*---------------------------MOTOR 90 Degrees Right-------------------------------------------------*/
+			case 8: // 90 DEG MOVE RIGHT
+				OLED_ShowString(10, 50, (uint8_t*)"[8] Move 90 right");
+				osDelay(1000);
+				break;
+		/*---------------------------MOTOR 180 Degrees Turn-------------------------------------------------*/
+			case 9:
+				OLED_ShowString(10, 50, (uint8_t*)"[9] Flip");
+				osDelay(1000);
+				break;
+		/*---------------------------Fastest Car_150cm-----------------------------------------------------*/
+			case 10:
+				motor_readjust(); // Start Goal
+				move_forward(2000);
+				move_forward_left(2000, 10); // Movement to cross the obstacle
+				move_forward_right(2000,60);// U-Turn back to goal
+				move_forward(2000);// Back to goal
+
+				motor_case = 0;
+
+			default:
+				OLED_ShowString(10, 50, (uint8_t*)"[10] Default");
+				//wheels_straight();
+				motor_stop();
+				break;
+
+		}
     osDelay(1);
   }
-  /* USER CODE END uart3 */
+  /* USER CODE END Motor_Task */
 }
 
 /**
