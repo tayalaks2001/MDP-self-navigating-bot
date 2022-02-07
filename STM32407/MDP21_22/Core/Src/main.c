@@ -121,7 +121,7 @@ uint8_t aRxBuffer[20] = {0};
 uint8_t uart_ready = 1;
 
 /* Motor Variables */
-int motor_case = 10;
+int motor_case = 'A';
 
 int journey = 0;
 int cur_travelled_distance_mm = 0;
@@ -792,20 +792,20 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-
+uint16_t Analog = 0;
+uint16_t pwm;
+uint16_t set = 250;
+double kp=8;
+double ki=1;
+double kd=5;
+double throttle=5000;
+float pid_p = 0, pid_i = 0, pid_d = 0, PID;
+float error, previous_error;
+unsigned long t_now, t_last, dt;
 
 void doPID(){
 
-	uint16_t Analog = 0;
-	uint16_t pwm;
-	uint16_t set = 250;
-	double kp=8;
-	double ki=1;
-	double kd=5;
-	double throttle=1500;
-	float pid_p = 0, pid_i = 0, pid_d = 0, PID;
-	float error, previous_error;
-	unsigned long t_now, t_last, dt;
+
 
 	 if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
 	        Analog=HAL_ADC_GetValue(&hadc1)/10;
@@ -831,9 +831,9 @@ void doPID(){
 	    if(pwm < 500){
 	        pwm = 500;
 	    }
-	    else if(pwm > 2000){
-	        pwm = 2000;
-	    }
+//	    else if(pwm > 2000){
+//	        pwm = 2000;
+//	    }
 
 
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
@@ -882,7 +882,7 @@ void move_forward(unsigned long milliseconds)
 	 while(HAL_GetTick()-t_start < milliseconds){
 		 doPID();
 	 }
-	 motor_stop();
+	 //motor_stop();
 }
 void move_forward_distance(int distance_mm)
 {
@@ -962,7 +962,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	   uart_ready = 0;
 	   HAL_UART_Transmit(&huart3, aRxBuffer, 20, 0xFFFF);
 	   if((aRxBuffer[0] == '0' || aRxBuffer[0] == '1' || aRxBuffer[0] == '2' || aRxBuffer[0] == '3' || aRxBuffer[0] == '4' ||
-		aRxBuffer[0] == '5') && aRxBuffer[0]!='\0' )
+		aRxBuffer[0] == '5') || aRxBuffer[0]=='10' && aRxBuffer[0]!='\0' )
 	   {
 		   motor_case = aRxBuffer[0] - 48;
 		   osDelay(1000);
@@ -1304,14 +1304,29 @@ void Motor_Task(void *argument)
 				OLED_ShowString(10, 50, (uint8_t*)"[9] Flip");
 				osDelay(1000);
 				break;
-		/*---------------------------Fastest Car_150cm-----------------------------------------------------*/
-			case 10:
+		/*---------------------------Fastest Car_100cm-----------------------------------------------------*/
+			case 'A': //THROTTLE 5000
+				while(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)!=0);
 				motor_readjust(); // Start Goal
-				move_forward(2000);
-				move_forward_left(2000, 10); // Movement to cross the obstacle
-				move_forward_right(2000,60);// U-Turn back to goal
-				move_forward(2000);// Back to goal
+				move_forward_left(800, 32); // Turn_Left
 
+				/*Turn Right Gradually before doing a steep right turn */
+				/*After this point, robot should be  vertically straight */
+				move_forward_right(100,20);
+				/*---------------------------------------------------*/
+
+				/* Revert Back to Horizontal Straight after a right turn*/
+				move_forward_right(800,90);
+				move_forward(900);
+				/*------------------------------------------------------*/
+
+				/*------------U-TURN------------------------------------*/
+
+				/*----------Right -U-Turn-------------------------------*/
+				move_forward_right(900,80);
+				/*-------- Revert to straight into the goal -------------*/
+				move_forward_left(700,40);
+				move_forward(1);
 				motor_case = 0;
 
 			default:
