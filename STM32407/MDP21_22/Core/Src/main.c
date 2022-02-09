@@ -121,10 +121,11 @@ uint8_t aRxBuffer[20] = {0};
 uint8_t uart_ready = 1;
 
 /* Motor Variables */
-int motor_case = 'A';
-
+uint8_t motor_case = 'B';
 int journey = 0;
 int cur_travelled_distance_mm = 0;
+uint16_t pwmL = 0;
+uint16_t pwmR = 0;
 
 /*Encoder Variables*/
 int Rcnt1, Rcnt2, Rdiff;
@@ -859,14 +860,33 @@ void motor_readjust()
 {
 	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	wheels_left(60);
-	osDelay(100);
+	osDelay(300);
 	wheels_right(60);
-	osDelay(100);
+	osDelay(300);
 	wheels_straight(60);
-	osDelay(1000);
+	osDelay(300);
+}
+
+/*-----------------------------------Assessment Requirement----------------------------------------*/
+void move_straight(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
+{
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < milliseconds);
 }
 
 
+
+/*-----------------------------------Assessment Requirement----------------------------------------*/
 
 void move_forward(unsigned long milliseconds)
 {
@@ -962,9 +982,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	   uart_ready = 0;
 	   HAL_UART_Transmit(&huart3, aRxBuffer, 20, 0xFFFF);
 	   if((aRxBuffer[0] == '0' || aRxBuffer[0] == '1' || aRxBuffer[0] == '2' || aRxBuffer[0] == '3' || aRxBuffer[0] == '4' ||
-		aRxBuffer[0] == '5') || aRxBuffer[0]=='10' && aRxBuffer[0]!='\0' )
+		aRxBuffer[0] == '5') || aRxBuffer[0]=='6' && aRxBuffer[0]!='\0' )
 	   {
 		   motor_case = aRxBuffer[0] - 48;
+		   osDelay(1000);
+	   }
+	   if(aRxBuffer[0]=='A')
+	   {
+		   motor_case = aRxBuffer[0];
 		   osDelay(1000);
 	   }
 	   else
@@ -1276,7 +1301,7 @@ void Motor_Task(void *argument)
 				break;
 		/*---------------------------MOTOR FORWARD RIGHT-------------------------------------------------*/
 			case 4: //MOVE FORWARD-RIGHT
-				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forwardright");
+				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forward right");
 				move_forward_right(500, 90);
 				break;
 		/*---------------------------MOTOR BACKWARD LEFT-------------------------------------------------*/
@@ -1286,21 +1311,24 @@ void Motor_Task(void *argument)
 				break;
 		/*---------------------------MOTOR BACKWARD RIGHT-------------------------------------------------*/
 			case 6: //MOVE BACKWARDS RIGHT
-				OLED_ShowString(10, 50, (uint8_t*)"[6] Move backright");
+				OLED_ShowString(10, 50, (uint8_t*)"[6] Move back right");
 				move_backward_right(500, 90);
 				break;
-		/*---------------------------MOTOR 90 Degrees Left-------------------------------------------------*/
-			case 7: //90 DEG MOVE LEFT
-				OLED_ShowString(10, 50, (uint8_t*)"[7] Move 90 left");
-				osDelay(1000);
+		/*---------------------------ASSESSMENT FUNCTION MOTOR STRAIGHT-------------------------------------------------------*/
+			case 7:
+				while(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)!=0);
+				OLED_ShowString(10, 50, (uint8_t*)"Move Straight");
+				motor_readjust();
+				//pwmL = 2000, pwmR = 1.2x2000, time is 2seconds
+				pwmL = 2000;
+				pwmR = 2000;
+				//Hard_Coded Function
+				move_straight(pwmL, 1.2*pwmR, 2000);
+				motor_case = 0;
 				break;
-		/*---------------------------MOTOR 90 Degrees Right-------------------------------------------------*/
-			case 8: // 90 DEG MOVE RIGHT
-				OLED_ShowString(10, 50, (uint8_t*)"[8] Move 90 right");
-				osDelay(1000);
-				break;
-		/*---------------------------MOTOR 180 Degrees Turn-------------------------------------------------*/
-			case 9:
+
+		/*---------------------------MOTOR X Degrees Turn-------------------------------------------------*/
+			case 8:
 				OLED_ShowString(10, 50, (uint8_t*)"[9] Flip");
 				osDelay(1000);
 				break;
@@ -1320,15 +1348,32 @@ void Motor_Task(void *argument)
 				move_forward(900);
 				/*------------------------------------------------------*/
 
-				/*------------U-TURN------------------------------------*/
-
 				/*----------Right -U-Turn-------------------------------*/
 				move_forward_right(900,80);
 				/*-------- Revert to straight into the goal -------------*/
 				move_forward_left(700,40);
-				move_forward(1);
 				motor_case = 0;
+	/*---------------------------Fastest Car_100cm(End)-----------------------------------------------------*/
 
+	/*---------------------------Fastest Car_200cm(Ground outside Lab)-----------------------------------------------------*/
+			case 'B': //THROTTLE 5000
+				while(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)!=0);
+				motor_readjust();
+
+				/*TURN LEFT */
+				move_forward_left(1700,10);
+
+				/*Turn Right Gradually before doing a steep right turn */
+				/*After this point robot should be vertically straight */
+				move_forward_right(800,20);
+				move_forward(300);
+				/*------------------------------------------------------*/
+
+				/* Revert Back to Horizontal Straight after a right turn*/
+				move_forward_right(800,30);
+				move_forward(900);
+
+				motor_case = 0;
 			default:
 				OLED_ShowString(10, 50, (uint8_t*)"[10] Default");
 				//wheels_straight();
