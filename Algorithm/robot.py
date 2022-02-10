@@ -19,7 +19,7 @@ map = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-       [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+       [0,'N',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
 
 class Robot:
@@ -80,7 +80,7 @@ class Robot:
         else:
             self.forward_rotate()
         self.error_check()
-        map[self.__location[0]][self.__location[1]] = 1
+        map[self.__location[0]][self.__location[1]] = self.__direction
 
     def backward(self):
         map[self.__location[0]][self.__location[1]] = 0
@@ -97,7 +97,7 @@ class Robot:
         else:
             self.backward_rotate()  
         self.error_check()
-        map[self.__location[0]][self.__location[1]] = 1
+        map[self.__location[0]][self.__location[1]] = self.__direction
 
     def forward_rotate(self):
         #Right (Clockwise)
