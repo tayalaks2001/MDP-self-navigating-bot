@@ -16,7 +16,7 @@ class ShortestPath:
         self.cost = float("inf")
         self.maze = maze
 
-    def get_updated_pos(self, curr_pos, move):
+    def getUpdatedPos(self, curr_pos, move):
         new_pos = curr_pos
         turning_dist = int(round(float(turning_radius)/grid_cell_size))
         if (move == 'F'):
@@ -77,21 +77,8 @@ class ShortestPath:
 
     def isMoveValid(self, curr_pos, move):
         new_pos = self.get_updated_pos(curr_pos, move)
-        x_fin, y_fin, _ = new_pos
+        return self.maze.robot_pos_is_valid(new_pos)
 
-        # check if robot goes out of bounds
-        if (x_fin < 0 or x_fin >= num_rows or y_fin < 0 or y_fin >= num_cols):
-            return False
-
-        # check all cells occupied by robot are empty
-        for x in range(x_fin-1, x_fin+2):
-            for y in range(y_fin-1, y_fin+2):
-                if (not self.maze.cell_is_valid(x,y)):
-                    return False
-        
-        return True
-
-    
 
     def isTurnValid(self, curr_pos, turnDir):
         new_pos = self.get_updated_pos(curr_pos, turnDir)
@@ -99,7 +86,7 @@ class ShortestPath:
         x_fin, y_fin, _ = new_pos
 
         # check if robot goes out of bounds
-        if (x_fin < 0 or x_fin >= num_rows or y_fin < 0 or y_fin >= num_cols):
+        if (not self.maze.robot_pos_is_valid(new_pos)):
             return False
         
         # check if any obstacle in bounding box formed by start and final pos
@@ -131,10 +118,12 @@ class ShortestPath:
             return self.path, self.cost
     
 
-    def get_route(self, curr_pos, visited, curr_route = [], curr_cost = 0):
-        # terminate if not valid state, already visited state
+    def getRoute(self, curr_pos, visited, curr_route = [], curr_cost = 0):
         print(self.source, curr_pos)
-        if (not self.maze.cell_is_valid(curr_pos[0],curr_pos[1]) or visited[curr_pos[0]][curr_pos[1]][direction_map[curr_pos[2]]]):
+        
+        # terminate if not valid state, already visited state
+        
+        if (not self.maze.robot_pos_is_valid(curr_pos) or visited[curr_pos[0]][curr_pos[1]][direction_map[curr_pos[2]]]):
             return
         
         if (curr_pos == self.dest):
@@ -151,14 +140,16 @@ class ShortestPath:
         # 4 recursive calls - F,B,L,R
         
         # F
-        new_pos = self.get_updated_pos(curr_pos, 'F')
-        print("F: ", new_pos)
-        self.get_route(new_pos, visited, curr_route+['F'], curr_cost+dist_moved_straight)
+        if (self.isMoveValid(curr_pos, 'F')):
+            new_pos = self.get_updated_pos(curr_pos, 'F')
+            print("F: ", new_pos)
+            self.get_route(new_pos, visited, curr_route+['F'], curr_cost+dist_moved_straight)
 
         # B
-        new_pos = self.get_updated_pos(curr_pos, 'B')
-        print("B: ", new_pos)
-        self.get_route(new_pos, visited, curr_route+['B'], curr_cost+dist_moved_straight)
+        if (self.isMoveValid(curr_pos, 'B')):
+            new_pos = self.get_updated_pos(curr_pos, 'B')
+            print("B: ", new_pos)
+            self.get_route(new_pos, visited, curr_route+['B'], curr_cost+dist_moved_straight)
 
         # L
         new_pos = self.get_updated_pos(curr_pos, 'L')

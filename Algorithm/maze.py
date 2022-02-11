@@ -100,10 +100,10 @@ class Maze:
         return x>=0 and x<=num_rows-1 and y>=0 and y<=num_cols-1 and not self.cell_is_obstacle(x,y)
     
     def robot_pos_is_valid(self, robot_centre):
-        x_c, y_c, dir = robot_centre
+        x_c, y_c, _ = robot_centre
         for x in range(x_c-1, x_c+2):
             for y in range(y_c-1, y_c+2):
-                if (self.cell_is_valid(x,y)):
+                if (not self.cell_is_valid(x,y)):
                     return False
         
         return True
