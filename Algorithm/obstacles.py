@@ -7,4 +7,4 @@ class Obstacle:
         self.location = location
 
     def set_direction(self, direction):
-        self.direction = direction 
+        self.direction = direction

@@ -13,33 +13,34 @@ canvas.pack()
 
 #Set Image File to Variable
 dirname = os.path.dirname(__file__)
-img_0 = PhotoImage(file=os.path.join(dirname,'Image','Image_0.png'))
-img_1 = PhotoImage(file=os.path.join(dirname,'Image','Image_1.png')) #North
-img_2 = PhotoImage(file=os.path.join(dirname,'Image','Image_2.png')) #East
-img_3 = PhotoImage(file=os.path.join(dirname,'Image','Image_3.png')) #South
-img_4 = PhotoImage(file=os.path.join(dirname,'Image','Image_4.png')) #West
-img_blank = PhotoImage(file=os.path.join(dirname,'Image','Image_blank.png'))
-img_U = PhotoImage(file=os.path.join(dirname,'Image','Image_U.png')) #Up (Turn = 0)
-img_R = PhotoImage(file=os.path.join(dirname,'Image','Image_R.png')) #Right (Turn = 1)
-img_L = PhotoImage(file=os.path.join(dirname,'Image','Image_L.png')) #Left (Turn = -1)
+image_0 = PhotoImage(file=os.path.join(dirname,'Image','Image_0.png')) #Empty Grid
+image_1 = PhotoImage(file=os.path.join(dirname,'Image','Image_1.png')) #Start Point Border
 
-Button_Up = PhotoImage(file=os.path.join(dirname,'Image','Button_Up.png'))
-Button_Right = PhotoImage(file=os.path.join(dirname,'Image','Button_Right.png'))
-Button_Down = PhotoImage(file=os.path.join(dirname,'Image','Button_Down.png'))
-Button_Left = PhotoImage(file=os.path.join(dirname,'Image','Button_Left.png'))
+image_U = PhotoImage(file=os.path.join(dirname,'Image','Image_U.png')) #Up (Turn = 0)
+image_R = PhotoImage(file=os.path.join(dirname,'Image','Image_R.png')) #Right (Turn = 1)
+image_L = PhotoImage(file=os.path.join(dirname,'Image','Image_L.png')) #Left (Turn = -1)
+
+robot_N = PhotoImage(file=os.path.join(dirname,'Image','Robot_N.png')) #North
+robot_E = PhotoImage(file=os.path.join(dirname,'Image','Robot_E.png')) #East
+robot_S = PhotoImage(file=os.path.join(dirname,'Image','Robot_S.png')) #South
+robot_W = PhotoImage(file=os.path.join(dirname,'Image','Robot_W.png')) #West
+
+button_Up = PhotoImage(file=os.path.join(dirname,'Image','Button_Up.png'))
+button_Right = PhotoImage(file=os.path.join(dirname,'Image','Button_Right.png'))
+button_Down = PhotoImage(file=os.path.join(dirname,'Image','Button_Down.png'))
+button_Left = PhotoImage(file=os.path.join(dirname,'Image','Button_Left.png'))
 
 #Create and Set Label
 label2_str = StringVar()
 label2_str.set("18 1")
-
 label1 = Label(window, text="Location :").place(x=0, y=405)
 label2 = Label(window, textvariable=label2_str).place(x=60, y=405)
 
 #Create and Set Button
-btn1 = Button(window, image = Button_Up, command = lambda:onclick(1)).place(x=200, y=400)
-btn2 = Button(window, image = Button_Down, command = lambda:onclick(2)).place(x=200, y=500)
-btn3 = Button(window, image = Button_Left, command = lambda:onclick(3)).place(x=150, y=450)
-btn4 = Button(window, image = Button_Right, command = lambda:onclick(4)).place(x=250, y=450)
+button1 = Button(window, image = button_Up, command = lambda:onclick(1)).place(x=300, y=400) #Forward
+button2 = Button(window, image = button_Down, command = lambda:onclick(2)).place(x=300, y=500) #Backward
+button3 = Button(window, image = button_Left, command = lambda:onclick(3)).place(x=250, y=450) #Turn Left
+button4 = Button(window, image = button_Right, command = lambda:onclick(4)).place(x=350, y=450) #Turn Right
 
 def draw():
     #Display the map
@@ -47,15 +48,23 @@ def draw():
     for row in map:
         for col in row:
             if col == 0:
-                canvas.create_image(x,y, anchor=NW, image=img_0)
-            elif col == 'N':
-                canvas.create_image(x,y, anchor=NW, image=img_1)
-            elif col == 'E':
-                canvas.create_image(x,y, anchor=NW, image=img_2)
-            elif col == 'S':
-                canvas.create_image(x,y, anchor=NW, image=img_3)
-            elif col == 'W':
-                canvas.create_image(x,y, anchor=NW, image=img_4)
+                canvas.create_image(x,y, anchor=NW, image=image_0)
+            x = x + 20
+        x = 3
+        y = y + 20
+
+    x,y = 3,0
+    for row in map:
+        for col in row:
+            if col != 0:
+                if col == 'N':
+                    canvas.create_image(x-20,y-20, anchor=NW, image=robot_N)
+                elif col == 'E':
+                    canvas.create_image(x-20,y-20, anchor=NW, image=robot_E)
+                elif col == 'S':
+                    canvas.create_image(x-20,y-20, anchor=NW, image=robot_S)
+                elif col == 'W':
+                    canvas.create_image(x-20,y-20, anchor=NW, image=robot_W)
             x = x + 20
         x = 3
         y = y + 20
@@ -63,17 +72,17 @@ def draw():
     #Display the starting point
     x,y = 2,339
     for i in range (0,60):
-        canvas.create_image(i+2,y, anchor=NW, image=img_blank)
-        canvas.create_image(62,y+i, anchor=NW, image=img_blank)
-        canvas.create_image(62-i,399, anchor=NW, image=img_blank)
-        canvas.create_image(x,399-i, anchor=NW, image=img_blank)
+        canvas.create_image(i+2 ,y, anchor=NW, image=image_1)
+        canvas.create_image(62,y+i, anchor=NW, image=image_1)
+        canvas.create_image(62-i,399, anchor=NW, image=image_1)
+        canvas.create_image(x ,399-i, anchor=NW, image=image_1)
 
     if r1.get_turn() == 0:
-        canvas.create_image(5,435, anchor=NW, image=img_U) #Up (Turn = 0)
+        canvas.create_image(5,435, anchor=NW, image=image_U) #Up (Turn = 0)
     elif r1.get_turn() == 1:
-        canvas.create_image(5,435, anchor=NW, image=img_R) #Right (Turn = 1)
+        canvas.create_image(5,435, anchor=NW, image=image_R) #Right (Turn = 1)
     else:
-        canvas.create_image(5,435, anchor=NW, image=img_L) #Left (Turn = -1)
+        canvas.create_image(5,435, anchor=NW, image=image_L) #Left (Turn = -1)
 
 def update():
     #Update Information Displayed
