@@ -1,6 +1,7 @@
 from tsp import FastestPath
 from maze import Maze
 from constants import *
+from utils import *
 from generate_maze import get_random_maze_with_obstacles
 
 # curr_maze = Maze()
@@ -11,4 +12,6 @@ print("Obstacles:", obstacles)
 
 fp = FastestPath()
 dist = curr_maze.get_dist_between_obstacles()
-fp.get_order_of_visit(dist, num_obstacles)
+visit_order = fp.get_order_of_visit(dist, num_obstacles+1)
+print(visit_order)
+

@@ -1,15 +1,24 @@
+from functools import update_wrapper
+from hashlib import new
+from re import X
+from turtle import distance
+from webbrowser import get
 from constants import *
+from utils import *
 from maze import Maze
+from tsp import FastestPath
 
 class ShortestPath:
-    def __init__(self):
+    def __init__(self, source, target, maze):
         self.path = []
-        self.source = [num_rows-2,1,NORTH]
-        self.target = [1,num_cols-2,NORTH]
+        self.source = source
+        self.dest = target
+        self.cost = float("inf")
+        self.maze = maze
 
     def get_updated_pos(self, curr_pos, move):
         new_pos = curr_pos
-        turning_dist = int(round(turning_radius/grid_cell_size))
+        turning_dist = int(round(float(turning_radius)/grid_cell_size))
         if (move == 'F'):
             if (curr_pos[2] == NORTH):
                 new_pos[0] -= 1
@@ -63,29 +72,102 @@ class ShortestPath:
                 new_pos[1] -= turning_dist
                 new_pos[2] = NORTH
 
+        return new_pos
 
-    def isMoveValid(self, maze, curr_pos, move):
-        new_pos = self.update_pos(curr_pos, move)
-        for x in range(new_pos[0]-1, new_pos[0]+2):
-            for y in range(new_pos[1]-1, new_pos[1]+2):
-                if (not maze.cell_is_valid(x,y)):
+
+    def isMoveValid(self, curr_pos, move):
+        new_pos = self.get_updated_pos(curr_pos, move)
+        x_fin, y_fin, _ = new_pos
+
+        # check if robot goes out of bounds
+        if (x_fin < 0 or x_fin >= num_rows or y_fin < 0 or y_fin >= num_cols):
+            return False
+
+        # check all cells occupied by robot are empty
+        for x in range(x_fin-1, x_fin+2):
+            for y in range(y_fin-1, y_fin+2):
+                if (not self.maze.cell_is_valid(x,y)):
                     return False
         
         return True
 
     
 
-    def isTurnValid(self, maze, curr_pos, turnDir):
+    def isTurnValid(self, curr_pos, turnDir):
         new_pos = self.get_updated_pos(curr_pos, turnDir)
         x_init, y_init, _ = curr_pos
         x_fin, y_fin, _ = new_pos
-        ...
+
+        # check if robot goes out of bounds
+        if (x_fin < 0 or x_fin >= num_rows or y_fin < 0 or y_fin >= num_cols):
+            return False
+        
+        # check if any obstacle in bounding box formed by start and final pos
+        left_bound, right_bound = min(y_init, y_fin), max(y_init, y_fin)
+        lower_bound, upper_bound = min(x_init, x_fin), max(x_init, x_fin)
+
+        for x in range(lower_bound, upper_bound+1):
+            for y in range(left_bound, right_bound+1):
+                if self.maze.cell_is_obstacle(x,y):
+                    # TODO: check distance of this obstacle from path of robot
+                    # only return false if distance to path is less than that allowed by robot dimensions
+                    return False
+        
+
+        return True
 
 
-    def findShortestPath(self, maze, curr_pos, target):
-        ...
+
+    def findShortestPath(self):
+        visited = [[[False for _ in range(len(directions))] for _ in range(num_cols)]\
+                for _ in range(num_rows)]
+        print("Finding path from {s} to {d}".format(s=self.source, d=self.dest))
+        src = self.source
+        self.get_route(src, visited)
+        if (len(self.path) == 0):
+            print("No path found from source: {s} to destination: {d}".format(s=self.source, d=self.dest))
+            return [], float("inf")
+        else:
+            return self.path, self.cost
     
 
-    def bfs(self, maze):
-        ...
-    
+    def get_route(self, curr_pos, visited, curr_route = [], curr_cost = 0):
+        # terminate if not valid state, already visited state
+        print(self.source, curr_pos)
+        if (not self.maze.cell_is_valid(curr_pos[0],curr_pos[1]) or visited[curr_pos[0]][curr_pos[1]][direction_map[curr_pos[2]]]):
+            return
+        
+        if (curr_pos == self.dest):
+            # goal achieved
+            if (curr_cost < self.cost):
+                self.path = curr_route
+                self.cost = curr_cost
+
+        # mark current node as visited
+        x,y,dir = curr_pos
+        visited[x][y][direction_map[dir]] = True
+
+
+        # 4 recursive calls - F,B,L,R
+        
+        # F
+        new_pos = self.get_updated_pos(curr_pos, 'F')
+        print("F: ", new_pos)
+        self.get_route(new_pos, visited, curr_route+['F'], curr_cost+dist_moved_straight)
+
+        # B
+        new_pos = self.get_updated_pos(curr_pos, 'B')
+        print("B: ", new_pos)
+        self.get_route(new_pos, visited, curr_route+['B'], curr_cost+dist_moved_straight)
+
+        # L
+        new_pos = self.get_updated_pos(curr_pos, 'L')
+        print("L: ", new_pos)
+        self.get_route(new_pos, visited, curr_route+['L'], curr_cost+dist_moved_turn)
+
+        # R
+        new_pos = self.get_updated_pos(curr_pos, 'R')
+        print("R: ", new_pos)
+        self.get_route(new_pos, visited, curr_route+['R'], curr_cost+dist_moved_turn)
+
+

@@ -1,4 +1,5 @@
 from constants import *
+from utils import *
 import logging
 
 from obstacles import Obstacle
@@ -56,8 +57,8 @@ class Maze:
                 fin_dir = EAST
 
             if fin_x>=num_cols or fin_x<0 or fin_y>=num_rows or fin_y<0:
-                logging.ERROR("Waypoint generated is out of bounds! Can't reach image on obstacle\
-                                [{x},{y},{dir}]",obs_x,obs_y,obs_dir)
+                # logging.ERROR("Waypoint generated is out of bounds! Can't reach image on obstacle\
+                #                 [{x},{y},{dir}]",obs_x,obs_y,obs_dir)
                 return
             
             waypoints.append([fin_x,fin_y,fin_dir])
@@ -69,21 +70,23 @@ class Maze:
         return self.waypoints
 
     def get_dist_between_obstacles(self):
-        dist = [[float("inf") for _ in range(len(self.obstacles))] for _ in range(len(self.obstacles))]
-        for i in range(len(self.obstacles)):
-            for j in range(i, len(self.obstacles)):
-                dist[i][j] = abs(self.obstacles[i][0]-self.obstacles[j][0]) + \
-                             abs(self.obstacles[i][1]-self.obstacles[j][1])
+        dist = [[float("inf") for _ in range(len(self.obstacles)+1)] for _ in range(len(self.obstacles)+1)]
+        obs = [[num_rows-1,1,NORTH]] + self.obstacles
+        for i in range(len(obs)):
+            for j in range(i, len(obs)):
+                dist[i][j] = abs(obs[i][0]-obs[j][0]) + \
+                             abs(obs[i][1]-obs[j][1])
                 dist[j][i] = dist[i][j]
 
         return dist
 
     def get_dist_between_waypoints(self):
-        dist = [[float("inf") for _ in range(len(self.waypoints))] for _ in range(len(self.waypoints))]
-        for i in range(len(self.waypoints)):
-            for j in range(i, len(self.waypoints)):
-                dist[i][j] = abs(self.waypoints[i][0]-self.waypoints[j][0]) + \
-                             abs(self.waypoints[i][1]-self.waypoints[j][1])
+        dist = [[float("inf") for _ in range(len(self.waypoints)+1)] for _ in range(len(self.waypoints)+1)]
+        wayp = [grid_start_pos] + self.waypoints
+        for i in range(len(wayp)):
+            for j in range(i, len(wayp)):
+                dist[i][j] = abs(wayp[i][0]-wayp[j][0]) + \
+                             abs(wayp[i][1]-wayp[j][1])
                 dist[j][i] = dist[i][j]
 
         return dist
@@ -94,4 +97,4 @@ class Maze:
     
 
     def cell_is_valid(self, x, y):
-        return x>=0 and x<num_rows and y>=0 and y<num_cols and not self.is_obstacle(x,y)
+        return x>0 and x<num_rows-1 and y>0 and y<num_cols-1 and not self.cell_is_obstacle(x,y)

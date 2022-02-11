@@ -1,5 +1,6 @@
 from logging.config import valid_ident
 from constants import *
+from utils import *
 from obstacles import *
 from robot import Robot, map
 

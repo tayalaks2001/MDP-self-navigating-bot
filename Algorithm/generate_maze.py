@@ -1,6 +1,7 @@
 from random import randint
 from tsp import *
 from constants import *
+from utils import *
 from maze import Maze
 
 def get_random_maze_with_obstacles():
@@ -15,10 +16,3 @@ def get_random_maze_with_obstacles():
     
     maze.set_obstacles(obstacles)
     return maze
-
-
-maze = get_random_maze_with_obstacles()
-waypoints = maze.get_waypoints()
-for point in waypoints:
-    maze.grid[point[0]][point[1]] = 'R'+point[2]
-print(maze)
