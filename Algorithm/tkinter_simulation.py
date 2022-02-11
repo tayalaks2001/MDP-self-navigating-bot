@@ -8,7 +8,7 @@ import os
 window = Tk()
 window.title("Simulation")
 
-canvas = Canvas(window, width = 405, height = 510)
+canvas = Canvas(window, width = 405, height = 550)
 canvas.pack()
 
 #Set Image File to Variable
@@ -23,6 +23,10 @@ img_U = PhotoImage(file=os.path.join(dirname,'Image','Image_U.png')) #Up (Turn =
 img_R = PhotoImage(file=os.path.join(dirname,'Image','Image_R.png')) #Right (Turn = 1)
 img_L = PhotoImage(file=os.path.join(dirname,'Image','Image_L.png')) #Left (Turn = -1)
 
+Button_Up = PhotoImage(file=os.path.join(dirname,'Image','Button_Up.png'))
+Button_Right = PhotoImage(file=os.path.join(dirname,'Image','Button_Right.png'))
+Button_Down = PhotoImage(file=os.path.join(dirname,'Image','Button_Down.png'))
+Button_Left = PhotoImage(file=os.path.join(dirname,'Image','Button_Left.png'))
 
 #Create and Set Label
 label2_str = StringVar()
@@ -32,10 +36,10 @@ label1 = Label(window, text="Location :").place(x=0, y=405)
 label2 = Label(window, textvariable=label2_str).place(x=60, y=405)
 
 #Create and Set Button
-btn1 = Button(window, text="Forward", command = lambda:onclick(1)).place(x=200, y=400)
-btn2 = Button(window, text="Backward", command = lambda:onclick(2)).place(x=200, y=430)
-btn3 = Button(window, text="Left", command = lambda:onclick(3)).place(x=200, y=460)
-btn4 = Button(window, text="Right", command = lambda:onclick(4)).place(x=200, y=490)
+btn1 = Button(window, image = Button_Up, command = lambda:onclick(1)).place(x=200, y=400)
+btn2 = Button(window, image = Button_Down, command = lambda:onclick(2)).place(x=200, y=500)
+btn3 = Button(window, image = Button_Left, command = lambda:onclick(3)).place(x=150, y=450)
+btn4 = Button(window, image = Button_Right, command = lambda:onclick(4)).place(x=250, y=450)
 
 def draw():
     #Display the map
