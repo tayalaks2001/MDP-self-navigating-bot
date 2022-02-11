@@ -6,15 +6,15 @@ from utils import *
 from generate_maze import get_random_maze_with_obstacles
 
 # curr_maze = Maze()
-# curr_maze.set_obstacles([[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
+# curr_maze.setObstacles([[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
 maze = get_random_maze_with_obstacles()
-obstacles = maze.get_obstacles()
+obstacles = maze.getObstacles()
 print("Obstacles:", obstacles)
 
-obstacles = maze.get_obstacles()
-waypoints = maze.get_waypoints()
+obstacles = maze.getObstacles()
+waypoints = maze.getWaypoints()
 obstacles_dist = maze.get_dist_between_obstacles()
-waypoints_dist = maze.get_dist_between_waypoints()
+waypoints_dist = maze.getDistBetweenWaypoints()
 fp = FastestPath()
 path = fp.get_order_of_visit(waypoints_dist, num_obstacles+1)
 
@@ -30,8 +30,8 @@ command_list = []
 #     sp.findShortestPath(maze)
 #     command_list.append(commands)
 
-maze.set_obstacles([[0,0,NORTH]])
-print(maze.get_obstacles())
-sp = ShortestPath([18,1,NORTH],[15,1,WEST], maze)
+maze.setObstacles([[0,0,NORTH]])
+print(maze.getObstacles())
+sp = ShortestPath([18,1,NORTH],[15,4,EAST], maze)
 path, cost = sp.findShortestPath()
 print(sp.path)

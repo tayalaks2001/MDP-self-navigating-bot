@@ -6,6 +6,9 @@ WEST = "W"
 directions = [NORTH,EAST,SOUTH,WEST]
 direction_map = {NORTH: 0, EAST: 1, SOUTH: 2, WEST: 3}
 
+# moves
+moves = ['F','B','L','R']
+
 # maze specifications
 maze_width = 200
 maze_height = 200

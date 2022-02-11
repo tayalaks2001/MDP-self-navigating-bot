@@ -17,7 +17,7 @@ class ShortestPath:
         self.maze = maze
 
     def getUpdatedPos(self, curr_pos, move):
-        new_pos = curr_pos
+        new_pos = curr_pos[:]
         turning_dist = int(round(float(turning_radius)/grid_cell_size))
         if (move == 'F'):
             if (curr_pos[2] == NORTH):
@@ -76,17 +76,19 @@ class ShortestPath:
 
 
     def isMoveValid(self, curr_pos, move):
-        new_pos = self.get_updated_pos(curr_pos, move)
-        return self.maze.robot_pos_is_valid(new_pos)
+        new_pos = self.getUpdatedPos(curr_pos, move)
+        if (move == 'L' or move == 'R'):
+            return self.isTurnValid(curr_pos, new_pos, move)
+
+        return self.maze.robotPosIsValid(new_pos)
 
 
-    def isTurnValid(self, curr_pos, turnDir):
-        new_pos = self.get_updated_pos(curr_pos, turnDir)
+    def isTurnValid(self, curr_pos, new_pos, turnDir):
         x_init, y_init, _ = curr_pos
         x_fin, y_fin, _ = new_pos
 
         # check if robot goes out of bounds
-        if (not self.maze.robot_pos_is_valid(new_pos)):
+        if (not self.maze.robotPosIsValid(new_pos)):
             return False
         
         # check if any obstacle in bounding box formed by start and final pos
@@ -95,7 +97,7 @@ class ShortestPath:
 
         for x in range(lower_bound, upper_bound+1):
             for y in range(left_bound, right_bound+1):
-                if self.maze.cell_is_obstacle(x,y):
+                if self.maze.posIsObstacle(x,y):
                     # TODO: check distance of this obstacle from path of robot
                     # only return false if distance to path is less than that allowed by robot dimensions
                     return False
@@ -110,7 +112,7 @@ class ShortestPath:
                 for _ in range(num_rows)]
         print("Finding path from {s} to {d}".format(s=self.source, d=self.dest))
         src = self.source
-        self.get_route(src, visited)
+        self.getRoute(src, visited)
         if (len(self.path) == 0):
             print("No path found from source: {s} to destination: {d}".format(s=self.source, d=self.dest))
             return [], float("inf")
@@ -119,11 +121,8 @@ class ShortestPath:
     
 
     def getRoute(self, curr_pos, visited, curr_route = [], curr_cost = 0):
-        print(self.source, curr_pos)
-        
         # terminate if not valid state, already visited state
-        
-        if (not self.maze.robot_pos_is_valid(curr_pos) or visited[curr_pos[0]][curr_pos[1]][direction_map[curr_pos[2]]]):
+        if (not self.maze.robotPosIsValid(curr_pos) or visited[curr_pos[0]][curr_pos[1]][direction_map[curr_pos[2]]]):
             return
         
         if (curr_pos == self.dest):
@@ -135,30 +134,11 @@ class ShortestPath:
         # mark current node as visited
         x,y,dir = curr_pos
         visited[x][y][direction_map[dir]] = True
-
-
-        # 4 recursive calls - F,B,L,R
         
-        # F
-        if (self.isMoveValid(curr_pos, 'F')):
-            new_pos = self.get_updated_pos(curr_pos, 'F')
-            print("F: ", new_pos)
-            self.get_route(new_pos, visited, curr_route+['F'], curr_cost+dist_moved_straight)
-
-        # B
-        if (self.isMoveValid(curr_pos, 'B')):
-            new_pos = self.get_updated_pos(curr_pos, 'B')
-            print("B: ", new_pos)
-            self.get_route(new_pos, visited, curr_route+['B'], curr_cost+dist_moved_straight)
-
-        # L
-        new_pos = self.get_updated_pos(curr_pos, 'L')
-        print("L: ", new_pos)
-        self.get_route(new_pos, visited, curr_route+['L'], curr_cost+dist_moved_turn)
-
-        # R
-        new_pos = self.get_updated_pos(curr_pos, 'R')
-        print("R: ", new_pos)
-        self.get_route(new_pos, visited, curr_route+['R'], curr_cost+dist_moved_turn)
-
-
+        # 4 recursive calls - F,B,L,R
+        for move in moves:
+            if (self.isMoveValid(curr_pos, move)):
+                new_pos = self.getUpdatedPos(curr_pos, move)
+                route = curr_route[:]
+                route = route + [move]
+                self.getRoute(new_pos, visited, route, curr_cost+move_cost[move])

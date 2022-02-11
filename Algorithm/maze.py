@@ -25,20 +25,20 @@ class Maze:
         return repr
 
 
-    def set_obstacles(self, obstacles):
+    def setObstacles(self, obstacles):
         self.obstacles = obstacles
         for obstacle in obstacles:
             x,y,dir = obstacle
             self.grid[x][y] = dir
-        self.set_waypoints()
+        self.setWaypoints()
 
 
-    def get_obstacles(self):
+    def getObstacles(self):
         return self.obstacles
     
 
     # generating waypoints- actual point where rover needs to be
-    def set_waypoints(self):
+    def setWaypoints(self):
         waypoints = []
         for obstacle in self.obstacles:
             obs_x,obs_y,obs_dir = obstacle
@@ -66,7 +66,7 @@ class Maze:
         self.waypoints = waypoints
 
 
-    def get_waypoints(self):
+    def getWaypoints(self):
         return self.waypoints
 
     def get_dist_between_obstacles(self):
@@ -80,7 +80,7 @@ class Maze:
 
         return dist
 
-    def get_dist_between_waypoints(self):
+    def getDistBetweenWaypoints(self):
         dist = [[float("inf") for _ in range(len(self.waypoints)+1)] for _ in range(len(self.waypoints)+1)]
         wayp = [grid_start_pos] + self.waypoints
         for i in range(len(wayp)):
@@ -92,18 +92,18 @@ class Maze:
         return dist
 
     
-    def cell_is_obstacle(self, x, y):
+    def posIsObstacle(self, x, y):
         return self.grid[x][y] != 0
     
 
-    def cell_is_valid(self, x, y):
-        return x>=0 and x<=num_rows-1 and y>=0 and y<=num_cols-1 and not self.cell_is_obstacle(x,y)
+    def posIsValid(self, x, y):
+        return x>=0 and x<=num_rows-1 and y>=0 and y<=num_cols-1 and not self.posIsObstacle(x,y)
     
-    def robot_pos_is_valid(self, robot_centre):
+    def robotPosIsValid(self, robot_centre):
         x_c, y_c, _ = robot_centre
         for x in range(x_c-1, x_c+2):
             for y in range(y_c-1, y_c+2):
-                if (not self.cell_is_valid(x,y)):
+                if (not self.posIsValid(x,y)):
                     return False
         
         return True

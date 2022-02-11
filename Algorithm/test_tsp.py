@@ -5,9 +5,9 @@ from utils import *
 from generate_maze import get_random_maze_with_obstacles
 
 # curr_maze = Maze()
-# curr_maze.set_obstacles([[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
+# curr_maze.setObstacles([[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
 curr_maze = get_random_maze_with_obstacles()
-obstacles = curr_maze.get_obstacles()
+obstacles = curr_maze.getObstacles()
 print("Obstacles:", obstacles)
 
 fp = FastestPath()

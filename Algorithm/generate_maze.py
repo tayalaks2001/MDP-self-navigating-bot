@@ -14,5 +14,5 @@ def get_random_maze_with_obstacles():
         obstacles[i][1] = y
         obstacles[i][2] = directions[dir]
     
-    maze.set_obstacles(obstacles)
+    maze.setObstacles(obstacles)
     return maze
