@@ -1436,18 +1436,18 @@ void Motor_Task(void *argument)
 				move_forward_distance(500);
 				break;
 		/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
-			case 2://MOVE BACKWARD
+			case 'A'://MOVE BACKWARD
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 2){break;}
+				if(motor_case != 'A'){break;}
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[2] Move backward");
 
 				move_backward_distance(500);
 				break;
 		/*---------------------------MOTOR FORWARD LEFT-------------------------------------------------*/
-			case 3://MOVE FORWARD-LEFT
+			case 'B'://MOVE FORWARD-LEFT
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 3){break;}
+				if(motor_case != 'B'){break;}
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[3] Move forward left");
 
@@ -1521,7 +1521,7 @@ void Motor_Task(void *argument)
 				break;
 
 
-		/*---------------------------ASSESMENT FUNCTION MOTOR 90 Degrees Right Turn-------------------------------------------------*/
+		/*---------------------------ASSESMENT FUNCTION MOTOR 90-360 Degrees Right Turn-------------------------------------------------*/
 			case 1:
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 1){break;}
@@ -1531,11 +1531,42 @@ void Motor_Task(void *argument)
 
 
 				/*Proportional for pwm 2000;*/
-				move_90turnR(2000,500 , 2100);
-				move_90turnR(2000,500 , 2100);
-				move_90turnR(2000,500 , 2100);
-				move_90turnR(2000,500 , 2100);
+				move_90turnR(2000,500 , 1850);
+//				move_90turnR(2000,500 , 2100);
+//				move_90turnR(2000,500 , 2100);
+//				move_90turnR(2000,500 , 2100);
 
+				break;
+
+			case 2:
+				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
+				if(motor_case != 2){break;}
+
+				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
+				//motor_readjust();
+
+
+				/*Proportional for pwm 2000;*/
+				move_90turnR(2000,500 , 1850);
+				move_90turnR(2000,500 , 1810);
+//				move_90turnR(2000,500 , 2100);
+//				move_90turnR(2000,500 , 2100);
+				break;
+
+			case 3:
+				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
+				if(motor_case != 3){break;}
+
+				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
+				//motor_readjust();
+
+				//move_90turnR(2000,500 , 2100);
+				/*Proportional for pwm 2000;*/
+				move_90turnR(2000,500 , 1850);
+				move_90turnR(2000,500 , 1830);
+				move_90turnR(2000,500 , 1850);
+				move_90turnR(2000,500 , 1750);
+//				move_90turnR(2000,500 , 2100);
 				break;
 		/*--------------------------ASSEESMENT FUNCTION MOTOR 90 Degrees Left Turn--------------------------------------------------*/
 			case 10:
