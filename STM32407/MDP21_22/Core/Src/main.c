@@ -130,15 +130,14 @@ uint8_t uart_ready = 1;
 
 /* Motor Variables */
 uint8_t motor_case = 0;
-int journey = 0;
-int cur_travelled_distance_mm = 0;
-int start_marker = 0;
 uint16_t pwmL = 0;
 uint16_t pwmR = 0;
 
-uint32_t lCounterCum = 0;
+const float hallPerMM = 1.62;
+int lCounter = 0;
+int lCounterPrev=0;
+int lCounterCum = 0;
 uint32_t lLastDiff = 0;
-uint32_t rCounterCum = 0;
 uint32_t rLastDiff = 0;
 
 /*Encoder Variables*/
@@ -532,7 +531,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 3;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -816,16 +815,13 @@ uint16_t set = 250;
 double kp=8;
 double ki=1;
 double kd=5;
-double throttle=5000;
+double throttle=3000;
 float pid_p = 0, pid_i = 0, pid_d = 0, PID;
 float error, previous_error;
 unsigned long t_now, t_last, dt;
 
 void doPID(){
-
-
-
-	 if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
+	if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
 	        Analog=HAL_ADC_GetValue(&hadc1)/10;
 	    }
 	    t_last = t_now;
@@ -966,10 +962,13 @@ void move_forward(unsigned long milliseconds)
 	 }
 	 //motor_stop();
 }
+
 void move_forward_distance(int distance_mm)
 {
 	lCounterCum = 0;
-	int expectedThreshold = lCounterCum + distance_mm * (304 / 204);
+	lCounterPrev = 0;
+	 __HAL_TIM_SET_COUNTER(&htim3,0);
+	int expectedThreshold = distance_mm * hallPerMM;
 
 	  //LEFT WHEELS
 	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
@@ -984,13 +983,26 @@ void move_forward_distance(int distance_mm)
 	 }
 	 motor_stop();
 }
+void move_forward_right_test(int degree){
+	wheels_right(90);
+	throttle=throttle/4;
+	move_forward_distance(238/40*degree);
+	throttle=throttle*4;
+	wheels_straight();
+}
 
 void move_forward_right(int time_mili, int degree){
 	wheels_right(degree);
 	move_forward(time_mili);
 	wheels_straight();
 }
-
+void move_forward_left_test(int degree){
+	wheels_left(90);
+	throttle=throttle/4;
+	move_forward_distance(238/40*degree);
+	throttle=throttle*4;
+	wheels_straight();
+}
 void move_forward_left(int time_mili, int degree){
 	wheels_left(degree);
 	move_forward(time_mili);
@@ -1000,7 +1012,8 @@ void move_forward_left(int time_mili, int degree){
 void move_backward_distance(int distance_mm)
 {
 	lCounterCum = 0;
-	int expectedThreshold = lCounterCum + distance_mm * (304 / 204);
+	lCounterPrev = 0;
+	int expectedThreshold = distance_mm * hallPerMM;
 
 	//LEFT WHEELS
 	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
@@ -1200,110 +1213,94 @@ void encoder_task(void *argument)
 	uint16_t Rdir;
 	Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
 	tick = HAL_GetTick();
-
   /* Infinite loop */
   for(;;)
   {
-	 //342 = 229mm
-	 //~304.5 = 1 full circumference revolution/ ~ 20.420352248333656050007181991317cm
+//	 if(HAL_GetTick()-tick > 1000)
+//	 {
+//		 Lcnt2 = __HAL_TIM_GET_COUNTER(&htim2);
+//		 Rcnt2 = __HAL_TIM_GET_COUNTER(&htim3);
+//
+//		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2))
+//		 {
+//			 if(Lcnt2 < Lcnt1){
+//				 Ldiff = Lcnt1- Lcnt2;
+//			 }
+//			 else{
+//				 Ldiff = (65535 - Lcnt2) + Lcnt1;
+//				 if(Ldiff==65535)
+//				 {
+//					 Ldiff = 0;
+//				 }
+//			 }
+//		 }
+//		 else
+//		 {
+//			 if(Lcnt2 > Lcnt1){
+//				 Ldiff = Lcnt2 - Lcnt1;
+//			 }
+//
+//			 else{
+//				 Ldiff = (65535-Lcnt1)+Lcnt2;
+//				 if(Ldiff == 65535){
+//					 Ldiff = 0;
+//				 }
+//			 }
+//		 }
+//
+//		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3)){
+//			 if(Rcnt2<Rcnt1)
+//			 {
+//				 Rdiff = Rcnt1 -Rcnt2;
+//			 }
+//			 else
+//			 {
+//				 Rdiff = (65535-Rcnt2)+Rcnt1;
+//				 if(Rdiff == 65535)
+//				 {
+//					 Rdiff = 0;
+//				 }
+//			 }
+//		 }
+//
+//		 else
+//		 {
+//			 if(Rcnt2 > Rcnt1){
+//				 Rdiff = Rcnt2 - Rcnt1;
+//			 }
+//			 else{
+//				 Rdiff = (65535-Rcnt1)+Rcnt2;
+//				 if(Rdiff == 65535)
+//				 {
+//					 Rdiff = 0;
+//				 }
+//			 }
+//		 }
 
-	 //OLED_ShowString(10, 40,output);
-	 cur_travelled_distance_mm = (lCounterCum - start_marker);
-	 //OLED_ShowString(10, 50,output1);
-	 if(HAL_GetTick()-tick > 25)
-	 {
-		 Lcnt2 = __HAL_TIM_GET_COUNTER(&htim2);
-		 Rcnt2 = __HAL_TIM_GET_COUNTER(&htim3);
-
-		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2))
-		 {
-			 if(Lcnt2 < Lcnt1){
-				 Ldiff = Lcnt1- Lcnt2;
-			 }
-			 else{
-				 Ldiff = (65535 - Lcnt2) + Lcnt1;
-				 if(Ldiff==65535)
-				 {
-					 Ldiff = 0;
-				 }
-			 }
-		 }
-		 else
-		 {
-			 if(Lcnt2 > Lcnt1){
-				 Ldiff = Lcnt2 - Lcnt1;
-			 }
-
-			 else{
-				 Ldiff = (65535-Lcnt1)+Lcnt2;
-				 if(Ldiff == 65535){
-					 Ldiff = 0;
-				 }
-			 }
-		 }
-
-		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3)){
-			 if(Rcnt2<Rcnt1)
-			 {
-				 Rdiff = Rcnt1 -Rcnt2;
-			 }
-			 else
-			 {
-				 Rdiff = (65535-Rcnt2)+Rcnt1;
-				 if(Rdiff == 65535)
-				 {
-					 Rdiff = 0;
-				 }
-			 }
-		 }
-
-		 else
-		 {
-			 if(Rcnt2 > Rcnt1){
-				 Rdiff = Rcnt2 - Rcnt1;
-			 }
-			 else{
-				 Rdiff = (65535-Rcnt1)+Rcnt2;
-				 if(Rdiff == 65535)
-				 {
-					 Rdiff = 0;
-				 }
-			 }
-		 }
-		 lCounterCum += Ldiff < 50000 ? Ldiff : 0;
-		 rCounterCum += Rdiff < 50000 ? Rdiff : 0;
-
-
-		 char output[12];
-		 sprintf(output,"%08d",lCounterCum);
-		  OLED_ShowString(10,40,output);
-		 char output1[12];
-		 sprintf(output1,"%08d",rCounterCum);
-		  OLED_ShowString(10,50,output1);
-
-	  	  sprintf(Ltemp, "LSpeed: %5d\0",Ldiff);
-		  OLED_ShowString(10,20,Ltemp);
-		  Ldir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2);
-//		  sprintf(Ltemp, "LDir: %5d \0", Ldir);
-//		  OLED_ShowString(10,30, Ltemp);
-
-		  sprintf(Rtemp, "RSpeed: %5d\0",Rdiff);
-		  OLED_ShowString(10,30,Rtemp);
-		  Rdir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
+//	  	  sprintf(Ltemp, "LSpeed: %5d\0",Ldiff);
+//		  OLED_ShowString(10,20,Ltemp);
+//		  Ldir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2);
+////		  sprintf(Ltemp, "LDir: %5d \0", Ldir);
+////		  OLED_ShowString(10,30, Ltemp);
+//
+//		  sprintf(Rtemp, "RSpeed: %5d\0",Rdiff);
+//		  OLED_ShowString(10,30,Rtemp);
+//		  Rdir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
 //		  sprintf(Rtemp, "RDir: %5d \0", Rdir);
 //		  OLED_ShowString(10,50, Rtemp);
+//		 Lcnt1 = __HAL_TIM_GET_COUNTER(&htim2);
+//		 Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
+//		 tick = HAL_GetTick();
+//		 osDelay(1);
+//	  }
+	  lCounterCum=__HAL_TIM_GET_COUNTER(&htim3);
+	  char output[12];
 
-
-
-		 Lcnt1 = __HAL_TIM_GET_COUNTER(&htim2);
-		 Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
-		 tick = HAL_GetTick();
-
-		  osDelay(1);
-	  }
+	  sprintf(output, "%8d\0",lCounterCum);
+	  OLED_ShowString(10, 40,output);
+	  //osDelay(1);
 
   }
-  osDelay(1000);
   /* USER CODE END encoder_task */
 }
 
@@ -1346,13 +1343,13 @@ void ultra_sonic_task(void *argument)
 * @retval None
 */
 /* USER CODE END Header_Motor_Task */
-int enableUpdateImage = 0;
 void Motor_Task(void *argument)
 {
   /* USER CODE BEGIN Motor_Task */
   /* Infinite loop */
 /*---------------------------MOTOR MOVEMENT-------------------------------------------------*/
-  motor_readjust();
+	int enableUpdateImage = 0;
+	motor_readjust();
   for(;;)
   {
 		switch(motor_case){
@@ -1363,18 +1360,17 @@ void Motor_Task(void *argument)
 				if(motor_case != 0){break;}
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[0] Motor Stop");
-
 				motor_stop();
 				break;
 		/*---------------------------MOTOR FORWARD-------------------------------------------------*/
-			case 1://MOVE FORWARD
+			case 4://MOVE FORWARD
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 1){break;}
-				if(enableUpdateImage == 1)
+				if(motor_case != 4){break;}
+				if(enableUpdateImage == 4)
 				OLED_ShowString(10, 50, (uint8_t*)"[1] Move forward");
 
 
-				move_forward_distance(40);
+				move_forward_distance(500);
 				break;
 		/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
 			case 2://MOVE BACKWARD
@@ -1383,7 +1379,7 @@ void Motor_Task(void *argument)
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[2] Move backward");
 
-				move_backward_distance(40);
+				move_backward_distance(500);
 				break;
 		/*---------------------------MOTOR FORWARD LEFT-------------------------------------------------*/
 			case 3://MOVE FORWARD-LEFT
@@ -1396,13 +1392,13 @@ void Motor_Task(void *argument)
 
 				break;
 		/*---------------------------MOTOR FORWARD RIGHT-------------------------------------------------*/
-			case 4: //MOVE FORWARD-RIGHT
+			case 1: //MOVE FORWARD-RIGHT
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 4){break;}
+				if(motor_case != 1){break;}
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forward right");
-
-				move_forward_right(500, 90);
+				move_forward_right_test(90);
+				//move_forward_right(500, 90);
 				break;
 		/*---------------------------MOTOR BACKWARD LEFT-------------------------------------------------*/
 			case 5: //MOVE BACKWARDS LEFT
@@ -1589,7 +1585,6 @@ void Speed_Dist_Task(void *argument)
 	sprintf(speed_travelled,"Speed: %d cm/s", speed);
 	//OLED_ShowString(10, 40, speed_travelled);
 	osDelay(100);
-    osDelay(1);
   }
   /* USER CODE END Speed_Dist_Task */
 }
