@@ -89,13 +89,6 @@ const osThreadAttr_t motortask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for Speed_Dist */
-osThreadId_t Speed_DistHandle;
-const osThreadAttr_t Speed_Dist_attributes = {
-  .name = "Speed_Dist",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -117,7 +110,6 @@ void show(void *argument);
 void encoder_task(void *argument);
 void ultra_sonic_task(void *argument);
 void Motor_Task(void *argument);
-void Speed_Dist_Task(void *argument);
 
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -236,9 +228,6 @@ int main(void)
 
   /* creation of motortask */
   motortaskHandle = osThreadNew(Motor_Task, NULL, &motortask_attributes);
-
-  /* creation of Speed_Dist */
-  Speed_DistHandle = osThreadNew(Speed_Dist_Task, NULL, &Speed_Dist_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -820,7 +809,7 @@ float pid_p = 0, pid_i = 0, pid_d = 0, PID;
 float error, previous_error;
 unsigned long t_now, t_last, dt;
 
-void doPID(){
+void doPID(int lOffset, int rOffset){
 	if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
 	        Analog=HAL_ADC_GetValue(&hadc1)/10;
 	    }
@@ -849,9 +838,10 @@ void doPID(){
 	        pwm = 2000;
 	    }
 
-
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+	    /*Left Wheel*/
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1,  pwm + lOffset);
+		/*Right Wheel*/
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm + rOffset);
 		previous_error = error;
 
 	    HAL_Delay(100);
@@ -873,14 +863,14 @@ void wheels_left(int degree){
 
 void motor_readjust()
 {
-	return;
-	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-	wheels_left(20);
-	osDelay(100);
-	wheels_right(20);
-	osDelay(100);
+	//return;
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+	wheels_left(10);
+	osDelay(500);
+	wheels_right(10);
+	osDelay(500);
 	wheels_straight();
-	osDelay(100);
+	osDelay(500);
 }
 
 
@@ -904,10 +894,8 @@ void move_straight(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
 	while(HAL_GetTick()-t_start < milliseconds);
 }
 
-void move_90turnR(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds )
+void move_80cm_straight(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
 {
-
-	wheels_right(30);
 	//LEFT WHEELS
 	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
      HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
@@ -916,7 +904,7 @@ void move_90turnR(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds )
 	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
 	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
 
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1.05*pwmL);
 	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
 
 
@@ -924,8 +912,52 @@ void move_90turnR(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds )
 	while(HAL_GetTick()-t_start < milliseconds);
 }
 
+void move_120cm_straight(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
+{
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1.05*pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < milliseconds);
+}
+void move_90turnR(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds )
+{
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	wheels_right(80);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1.05*pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+	uint32_t t_start = HAL_GetTick();
+
+	while(HAL_GetTick()-t_start < milliseconds)
+	{
+		osDelay(1);
+	}
+
+	motor_stop();
+}
+
 void move_90turnL(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
 {
+
+	//Turning Angle should be calculated based on different speed
 	wheels_left(30);
 	//LEFT WHEELS
 	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
@@ -943,6 +975,30 @@ void move_90turnL(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
 	while(HAL_GetTick()-t_start < milliseconds);
 }
 
+void move_180turnR(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
+{
+	 wheels_right(30);
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < milliseconds);
+}
+
+void move_180turnL(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
+
+{
+
+}
+
 
 /*-----------------------------------Assessment Requirement----------------------------------------*/
 
@@ -958,7 +1014,7 @@ void move_forward(unsigned long milliseconds)
 
 	 uint32_t t_start = HAL_GetTick();
 	 while(HAL_GetTick()-t_start < milliseconds){
-		 doPID();
+		 doPID(0,0);
 	 }
 	 //motor_stop();
 }
@@ -979,7 +1035,7 @@ void move_forward_distance(int distance_mm)
 	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
 
 	 while(lCounterCum < expectedThreshold){
-		doPID();
+		doPID(0,0);
 	 }
 	 motor_stop();
 }
@@ -1024,7 +1080,7 @@ void move_backward_distance(int distance_mm)
 	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
 
 	 while(lCounterCum < expectedThreshold){
-		doPID();
+		doPID(0,0);
 	 }
 	 motor_stop();
 }
@@ -1046,6 +1102,8 @@ void motor_stop()
 	motor_case=0;
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0);
+
+	 //wheels_straight();
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -1053,8 +1111,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	/*Prevent unused argument(s) compilation warning */
 	UNUSED(huart);
 	//OLED_ShowString(20, 50, (uint8_t*)"CALLBACK");
+
+	osDelay(1000);
    if(uart_ready == 1)
    {
+	   //HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+	   //osDelay(1000);
 	   uart_ready = 0;
 	   HAL_UART_Transmit(&huart3, aRxBuffer, 20, 0xFFFF);
 	   if((aRxBuffer[0] == '0' || aRxBuffer[0] == '1' || aRxBuffer[0] == '2' || aRxBuffer[0] == '3' || aRxBuffer[0] == '4' ||
@@ -1349,7 +1411,7 @@ void Motor_Task(void *argument)
   /* Infinite loop */
 /*---------------------------MOTOR MOVEMENT-------------------------------------------------*/
 	int enableUpdateImage = 0;
-	motor_readjust();
+	//motor_readjust();
   for(;;)
   {
 		switch(motor_case){
@@ -1361,6 +1423,7 @@ void Motor_Task(void *argument)
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[0] Motor Stop");
 				motor_stop();
+				wheels_straight();
 				break;
 		/*---------------------------MOTOR FORWARD-------------------------------------------------*/
 			case 4://MOVE FORWARD
@@ -1392,9 +1455,9 @@ void Motor_Task(void *argument)
 
 				break;
 		/*---------------------------MOTOR FORWARD RIGHT-------------------------------------------------*/
-			case 1: //MOVE FORWARD-RIGHT
+			case 9: //MOVE FORWARD-RIGHT
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 1){break;}
+				if(motor_case != 9){break;}
 				if(enableUpdateImage == 1)
 				OLED_ShowString(10, 50, (uint8_t*)"[4] Move forward right");
 				move_forward_right_test(90);
@@ -1418,41 +1481,65 @@ void Motor_Task(void *argument)
 
 				move_backward_right(500, 90);
 				break;
-		/*---------------------------ASSESSMENT FUNCTION MOTOR STRAIGHT-------------------------------------------------------*/
+		/*---------------------------ASSESSMENT FUNCTION 80 cm MOTOR STRAIGHT-------------------------------------------------------*/
 			case 7:
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 7){break;}
 
 				if(enableUpdateImage == 1)
-				OLED_ShowString(10, 50, (uint8_t*)"Move Straight");
+				OLED_ShowString(10, 50, (uint8_t*)"Move 80 cm Straight");
 
 				motor_readjust();
-				/*pwmL =1.1* 2000, pwmR = 2000, Duration time is 3seconds*/
 				pwmL = 2000;
 				pwmR = 2000;
 				/*Proportional for pwm 2000;*/
-				move_straight(1.1*pwmL, pwmR, 3000);
+				/* 1500 ms -> 50cm ->pwm 2000*/
+				/* 2000 ms -> 67.2 -> pwm 2000 */
+				/* 2372 ms -> +-80 -> pwm 2000 */
+				/* 3538ms  -> +- 120 -> pwm 2000*/
+				move_80cm_straight(1.05*pwmL, pwmR, 2372);
 				motor_case = 0;
 				break;
-
-		/*---------------------------ASSESMENT FUNCTION MOTOR 90 Degrees Turn-------------------------------------------------*/
+		/*---------------------------ASSESSMENT FUNCTION 120 cm MOTOR STRAIGHT-------------------------------------------------------*/
 			case 8:
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 8){break;}
 
-				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
+				if(enableUpdateImage == 1)
+				OLED_ShowString(10, 50, (uint8_t*)"Move 120 cm Straight");
 
 				motor_readjust();
-
-				/*pwmL =1.1* 2000, pwmR = 500, Duration time is 3seconds*/
 				pwmL = 2000;
-				pwmR = 500;
+				pwmR = 2000;
 				/*Proportional for pwm 2000;*/
-				move_90turnR(pwmL, pwmR, 2000);
+				/* 1500 ms -> 50cm ->pwm 2000*/
+				/* 2000 ms -> 67.2 -> pwm 2000 */
+				/* 2372 ms -> +-80 -> pwm 2000 */
+				/* 3538ms  -> +- 120 -> pwm 2000*/
+				move_120cm_straight(1.05*pwmL, pwmR, 3538);
+				motor_case = 0;
+				break;
+
+
+		/*---------------------------ASSESMENT FUNCTION MOTOR 90 Degrees Right Turn-------------------------------------------------*/
+			case 1:
+				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
+				if(motor_case != 1){break;}
+
+				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
+				//motor_readjust();
+
+
+				/*Proportional for pwm 2000;*/
+				move_90turnR(2000,500 , 2100);
+				move_90turnR(2000,500 , 2100);
+				move_90turnR(2000,500 , 2100);
+				move_90turnR(2000,500 , 2100);
+
 				break;
 		/*--------------------------ASSEESMENT FUNCTION MOTOR 90 Degrees Left Turn--------------------------------------------------*/
-			case 9:
-				if(motor_case != 9){break;}
+			case 10:
+				if(motor_case != 10){break;}
 
 				OLED_ShowString(10, 50, (uint8_t*)"X Degree(L)");
 
@@ -1466,10 +1553,10 @@ void Motor_Task(void *argument)
 				break;
 
 		/*---------------------------Fastest Car_80cm(Indoor HWLAB3 )-----------------------------------------------------*/
-			case 10://THROTTLE 5000
+			case 11://THROTTLE 5000
 
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case!=10){break;}
+				if(motor_case!=11){break;}
 
 				OLED_ShowString(10, 50, (uint8_t*)"80cm");
 
@@ -1504,9 +1591,9 @@ void Motor_Task(void *argument)
 
 
 		/*---------------------------Fastest Car_100cm(Indoor )-----------------------------------------------------*/
-			case 11: //THROTTLE 5000
+			case 12: //THROTTLE 5000
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 11){break;}
+				if(motor_case != 12){break;}
 
 				OLED_ShowString(10, 50, (uint8_t*)"100cm");
 
@@ -1532,8 +1619,9 @@ void Motor_Task(void *argument)
 	/*---------------------------Fastest Car_100cm(End)-----------------------------------------------------*/
 
 	/*---------------------------Fastest Car_200cm(Indoor HWLab3)-----------------------------------------------------*/
-			case 12: //THROTTLE 5000
+			case 13: //THROTTLE 5000
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
+				if(motor_case != 13){break;}
 				motor_readjust();
 
 				/*TURN LEFT */
@@ -1562,31 +1650,6 @@ void Motor_Task(void *argument)
     osDelay(1);
   }
   /* USER CODE END Motor_Task */
-}
-
-/* USER CODE BEGIN Header_Speed_Dist_Task */
-/**
-* @brief Function implementing the Speed_Dist thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_Speed_Dist_Task */
-void Speed_Dist_Task(void *argument)
-{
-  /* USER CODE BEGIN Speed_Dist_Task */
-  /* Infinite loop */
-	int speed = 0;
-	int max;
-	uint8_t speed_travelled[10];
-  for(;;)
-  {
-	max = (Ldiff > Rdiff)? Ldiff:Rdiff;
-	speed = ((max + 0.0f)/330) * circum/3;
-	sprintf(speed_travelled,"Speed: %d cm/s", speed);
-	//OLED_ShowString(10, 40, speed_travelled);
-	osDelay(100);
-  }
-  /* USER CODE END Speed_Dist_Task */
 }
 
 /**
