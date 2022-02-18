@@ -30,8 +30,9 @@ command_list = []
 #     sp.findShortestPath(maze)
 #     command_list.append(commands)
 
-maze.setObstacles([[0,0,NORTH]])
+maze.setObstacles([[17,11,NORTH]])
 print(maze.getObstacles())
 sp = ShortestPath([18,1,NORTH],[15,4,EAST], maze)
-path, cost = sp.findShortestPath()
-print(sp.path)
+print(sp.getUpdatedPos([18,1,NORTH],'R'))
+path = sp.main()
+print(path)
