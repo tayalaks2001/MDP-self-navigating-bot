@@ -19,7 +19,22 @@ def move_backward():
     r1.backward()
     print_map()
 
+def input_obstacles():
+    x_loc = input("Enter Obstacle x-location (0-19): ")
+    y_loc = input("Enter Obstacle y-location (0-19): ")
+    obs_dir = input("Enter Obstacle direction (N/S/W/E): ")
+    obs1 = Obstacle([19-int(x_loc),int(y_loc)], obs_dir)
+    if obs_dir == 'N':
+        map[obs1.location[0]][obs1.location[1]] = 'ON' #Obstacle North
+    elif obs_dir == 'S':
+        map[obs1.location[0]][obs1.location[1]] = 'OS' #Obstacle South
+    elif obs_dir == 'W':
+        map[obs1.location[0]][obs1.location[1]] = 'OW' #Obstacle West
+    else:
+        map[obs1.location[0]][obs1.location[1]] = 'OE' #Obstacle East
+
 def main():
+    input_obstacles()
     #Terminal Simulation
     simulation_on = True
     print_map()
