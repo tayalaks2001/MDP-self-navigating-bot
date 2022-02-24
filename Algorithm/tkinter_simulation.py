@@ -188,7 +188,23 @@ def tsp():
     print(visit_order)
 
 def shortest_path():
-    print("a")
+    #curr_maze = Maze()
+    curr_maze.setObstacles(obstacle_list)
+    obstacles = curr_maze.getObstacles()
+    maze = curr_maze
+    obstacles = maze.getObstacles()
+    print("Obstacles:", obstacles)
+
+    obstacles = maze.getObstacles()
+    waypoints = maze.getWaypoints()
+    obstacles_dist = maze.get_dist_between_obstacles()
+    waypoints_dist = maze.getDistBetweenWaypoints()
+    #fp = FastestPath()
+    print(len(obstacle_list))
+    path = fp.get_order_of_visit(waypoints_dist, len(obstacle_list)+1)
+    #command_list = []
+    print(path)
+    
 
 #Start Simulation Button
 button6 = Button(window, text="Start Simulation", command = start_sim1) #Start Button

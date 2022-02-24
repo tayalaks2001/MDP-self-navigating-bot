@@ -5,7 +5,6 @@ from constants import *
 from utils import *
 from generate_maze import get_random_maze_with_obstacles
 
-
 curr_maze = Maze()
 curr_maze.setObstacles([[1,1,'S'],[2,2,'S'],[3,3,'S'],[4,4,'S'],[5,5,'S']])
 #maze = get_random_maze_with_obstacles()
