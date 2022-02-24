@@ -6,6 +6,11 @@ from obstacles import *
 from robot import Robot, map
 from tkinter import *
 import os
+from tsp import FastestPath
+from shortest_path import ShortestPath
+from maze import Maze
+from utils import *
+
 
 window = Tk()
 window.title("Simulation")
@@ -153,6 +158,7 @@ def start_sim1():
     button4["state"] = NORMAL
     button5["state"] = DISABLED
     button6["state"] = DISABLED
+    tsp()
 
 def start_sim2():
     command = command_list[0]
@@ -171,6 +177,18 @@ def start_sim2():
     command_list.pop(0)
     window.after(1000, start_sim2)
 
+def tsp():
+    curr_maze.setObstacles(obstacle_list)
+    obstacles = curr_maze.getObstacles()
+    print("Obstacles:", obstacles)
+
+    dist = curr_maze.get_dist_between_obstacles()
+    print(len(obstacle_list))
+    visit_order = fp.get_order_of_visit(dist, len(obstacle_list)+1)
+    print(visit_order)
+
+def shortest_path():
+    print("a")
 
 #Start Simulation Button
 button6 = Button(window, text="Start Simulation", command = start_sim1) #Start Button
@@ -206,5 +224,7 @@ def main():
 
 if __name__ == '__main__':
     r1 = Robot()
+    curr_maze = Maze()
+    fp = FastestPath()
     draw()
     main()
