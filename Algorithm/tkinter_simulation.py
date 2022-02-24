@@ -1,3 +1,4 @@
+from distutils import command
 from logging.config import valid_ident
 from tracemalloc import start
 from constants import *
@@ -137,7 +138,7 @@ def input_obstacle():
 button5 = Button(window, text="Add Obstacle", command = input_obstacle)
 button5.place(x=5, y=580)
 
-def start_sim():
+def start_sim1():
     button1["state"] = NORMAL
     button2["state"] = NORMAL
     button3["state"] = NORMAL
@@ -145,9 +146,28 @@ def start_sim():
     button5["state"] = DISABLED
     button6["state"] = DISABLED
 
+def start_sim2():
+    for command in command_list:
+        if command == 'F':      #Forward Event
+            button1.invoke()
+        elif command == 'B':    #Backward Event
+            button2.invoke()
+        elif command == 'L':    #Left Event
+            button3.invoke()
+            button3.invoke()
+            button1.invoke()
+        elif command == 'R':    #Right Event
+            button4.invoke()
+            button4.invoke()
+            button1.invoke()
+
+
 #Start Simulation Button
-button6 = Button(window, text="Start Simulation", command = start_sim) #Start Button
+button6 = Button(window, text="Start Simulation", command = start_sim1) #Start Button
 button6.place(x=100, y=580)
+button7 = Button(window, text="Start Simulation 2", command = start_sim2) #Start Button
+button7.place(x=100, y=600)
+
 
 def update():
     #Update Information Displayed
@@ -156,16 +176,16 @@ def update():
 def onclick(args):
     #Clear and Update Canvas
     canvas.delete("all")
-    if args == 1:
+    if (args == 1) or (args == 'F'):
         #Move Up
         r1.forward()
-    if args == 2:
+    elif (args == 2) or (args == 'B'):
         #Move Backward
         r1.backward()
-    if args == 3:
+    elif (args == 3) or (args == 'L'):
         #Turn Left
         Robot.turn(r1,-1)
-    if args == 4:
+    elif (args == 4) or (args == 'R'):
         #Turn Right
         Robot.turn(r1,1)
     draw()
@@ -177,4 +197,5 @@ def main():
 if __name__ == '__main__':
     r1 = Robot()
     draw()
+    command_list = ['F','F','L','F']
     main()
