@@ -69,6 +69,7 @@ input3 = Entry(window, width = 5)   #InputField Obstacle direction
 input3.place(x=130, y=550)
 
 command_list = ['F','F','R','F']
+obstacle_list = []
 
 def draw():
     #Display the map
@@ -121,8 +122,13 @@ def draw():
         canvas.create_image(5,435, anchor=NW, image=image_L) #Left (Turn = -1)
 
 def input_obstacle():
-    obs_loc = [19-int(input2.get()), int(input1.get())]
+    obs_loc = [int(input2.get()), int(input1.get())]
     obs_dir = input3.get()
+    obs = [int(input2.get()), int(input1.get()), input3.get()]
+    obstacle_list.append(obs)
+    print(obs)
+    print(obstacle_list)
+    
     input1.delete(0,END)
     input2.delete(0,END)
     input3.delete(0,END)
