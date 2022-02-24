@@ -68,6 +68,8 @@ input2.place(x=130, y=530)
 input3 = Entry(window, width = 5)   #InputField Obstacle direction
 input3.place(x=130, y=550)
 
+command_list = ['F','F','R','F']
+
 def draw():
     #Display the map
     x,y = 3,0
@@ -147,19 +149,21 @@ def start_sim1():
     button6["state"] = DISABLED
 
 def start_sim2():
-    for command in command_list:
-        if command == 'F':      #Forward Event
-            button1.invoke()
-        elif command == 'B':    #Backward Event
-            button2.invoke()
-        elif command == 'L':    #Left Event
-            button3.invoke()
-            button3.invoke()
-            button1.invoke()
-        elif command == 'R':    #Right Event
-            button4.invoke()
-            button4.invoke()
-            button1.invoke()
+    command = command_list[0]
+    if command == 'F':      #Forward Event
+        button1.invoke()
+    elif command == 'B':    #Backward Event
+        button2.invoke()
+    elif command == 'L':    #Left Event
+        button3.invoke()
+        button3.invoke()
+        button1.invoke()
+    elif command == 'R':    #Right Event
+        button4.invoke()
+        button4.invoke()
+        button1.invoke()
+    command_list.pop(0)
+    window.after(1000, start_sim2)
 
 
 #Start Simulation Button
@@ -197,5 +201,4 @@ def main():
 if __name__ == '__main__':
     r1 = Robot()
     draw()
-    command_list = ['F','F','L','F']
     main()
