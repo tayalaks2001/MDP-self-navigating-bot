@@ -10,6 +10,7 @@ from tsp import FastestPath
 from shortest_path import ShortestPath
 from maze import Maze
 from utils import *
+from temp_shortest_path import *
 
 
 window = Tk()
@@ -159,8 +160,10 @@ def start_sim1():
     button5["state"] = DISABLED
     button6["state"] = DISABLED
     tsp()
+    shortest_path()
 
 def start_sim2():
+    
     command = command_list[0]
     if command == 'F':      #Forward Event
         button1.invoke()
@@ -168,12 +171,12 @@ def start_sim2():
         button2.invoke()
     elif command == 'L':    #Left Event
         button3.invoke()
-        button3.invoke()
-        button1.invoke()
+        #button3.invoke()
+        #button1.invoke()
     elif command == 'R':    #Right Event
         button4.invoke()
-        button4.invoke()
-        button1.invoke()
+        #button4.invoke()
+        #button1.invoke()
     command_list.pop(0)
     window.after(1000, start_sim2)
 
@@ -188,21 +191,23 @@ def tsp():
     print(visit_order)
 
 def shortest_path():
-    #curr_maze = Maze()
-    curr_maze.setObstacles(obstacle_list)
-    obstacles = curr_maze.getObstacles()
-    maze = curr_maze
-    obstacles = maze.getObstacles()
-    print("Obstacles:", obstacles)
+    # #curr_maze = Maze()
+    # curr_maze.setObstacles(obstacle_list)
+    # obstacles = curr_maze.getObstacles()
+    # maze = curr_maze
+    # obstacles = maze.getObstacles()
+    # print("Obstacles:", obstacles)
 
-    obstacles = maze.getObstacles()
-    waypoints = maze.getWaypoints()
-    obstacles_dist = maze.get_dist_between_obstacles()
-    waypoints_dist = maze.getDistBetweenWaypoints()
-    #fp = FastestPath()
-    print(len(obstacle_list))
-    path = fp.get_order_of_visit(waypoints_dist, len(obstacle_list)+1)
-    #command_list = []
+    # obstacles = maze.getObstacles()
+    # waypoints = maze.getWaypoints()
+    # obstacles_dist = maze.get_dist_between_obstacles()
+    # waypoints_dist = maze.getDistBetweenWaypoints()
+    # #fp = FastestPath()
+    # print(len(obstacle_list))
+    # path = fp.get_order_of_visit(waypoints_dist, len(obstacle_list)+1)
+    # #command_list = []
+    # print(path)
+    path = TempShortestPath.main(obstacle_list)
     print(path)
     
 
@@ -222,16 +227,20 @@ def onclick(args):
     canvas.delete("all")
     if (args == 1) or (args == 'F'):
         #Move Up
+        Robot.turn(r1,0)    #Remove for manual mode
         r1.forward()
     elif (args == 2) or (args == 'B'):
         #Move Backward
+        Robot.turn(r1,0)    #Remove for manual mode
         r1.backward()
     elif (args == 3) or (args == 'L'):
         #Turn Left
         Robot.turn(r1,-1)
+        r1.forward()        #Remove for manual mode
     elif (args == 4) or (args == 'R'):
         #Turn Right
         Robot.turn(r1,1)
+        r1.forward()        #Remove for manual mode
     draw()
     update()
 

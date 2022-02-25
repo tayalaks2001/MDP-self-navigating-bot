@@ -77,7 +77,8 @@ class Robot:
     
     def turn(self, turn):
         if ((self.__turn + turn) > -2) and ((self.__turn + turn) < 2):
-            self.__turn = self.__turn + turn
+            #self.__turn = self.__turn + turn
+            self.__turn = turn
 
     def forward(self):
         map[self.__location[0]][self.__location[1]] = 0

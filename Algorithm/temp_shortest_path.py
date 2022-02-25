@@ -193,7 +193,10 @@ class TempShortestPath:
                     continue
 
                 # Create the f, g, and h values
-                child.g = current_node.g + 1
+                if (child.prev_move == 'R' or child.prev_move == 'L'):
+                    child.g = current_node.g + 20
+                else:
+                    child.g = current_node.g + 1
                 child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
                 child.f = child.g + child.h
 
@@ -218,7 +221,7 @@ class TempShortestPath:
 
 
     @staticmethod
-    def main(obtsacles):
+    def main(obstacles):
         maze = Maze()
         maze.setObstacles(obstacles)
         waypoints = maze.getWaypoints()
