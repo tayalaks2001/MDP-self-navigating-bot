@@ -32,4 +32,5 @@ class FastestPath:
         visited[0] = True
         ans = [0 for _ in range(n)]
         self.tsp(dist, visited, 0, 1, n, 0, ans)
-        return self.path
+        path = self.path
+        return path

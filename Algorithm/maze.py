@@ -12,7 +12,7 @@ class Maze:
         self.num_cols = int(maze_height/grid_cell_size)
         self.grid = [[0 for _ in range(self.num_rows)] 
                 for _ in range(self.num_cols)]
-        self.waypoints = [[0 for _ in range(3)] for _ in range(num_obstacles)]
+        self.waypoints = [[float("-inf") for _ in range(3)] for _ in range(num_obstacles)]
         
 
     def __repr__(self):
@@ -56,9 +56,8 @@ class Maze:
                 fin_y -= int(dist_from_obst/grid_cell_size)
                 fin_dir = EAST
 
-            if fin_x>=num_cols or fin_x<0 or fin_y>=num_rows or fin_y<0:
-                # logging.ERROR("Waypoint generated is out of bounds! Can't reach image on obstacle\
-                #                 [{x},{y},{dir}]",obs_x,obs_y,obs_dir)
+            if fin_x>=num_cols-1 or fin_x<=0 or fin_y>=num_rows-1 or fin_y<=0:
+                self.waypoints = [[float("-inf") for _ in range(3)] for _ in range(num_obstacles)]
                 return
             
             waypoints.append([fin_x,fin_y,fin_dir])

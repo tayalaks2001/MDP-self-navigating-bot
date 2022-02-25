@@ -2,3 +2,4 @@
 Algorithm/*.pyc
 Algorithm/__pycache__/
 Algorithm/test.py
+*.pyc

@@ -1,9 +1,4 @@
-from functools import update_wrapper
-from hashlib import new
-from mimetypes import init
-from re import X
-from turtle import distance
-from webbrowser import get
+import math
 from constants import *
 from utils import *
 from maze import Maze
@@ -23,6 +18,12 @@ class Node:
         self.previous = None
         self.prev_move = None
         self.obstacle = False
+    
+    def __repr__(self):
+        return ("[{x}, {y}, {dir}, {g}, {h}]".format(x = self.x, y = self.y, dir = self.dir, g = self.g, h = self.h))
+
+    def __eq__(self, a):
+        return self.x == a.x and self.y == a.y and self.dir == a.dir
 
 
 
@@ -38,7 +39,7 @@ class ShortestPath:
 
     def getUpdatedPos(self, curr_pos, move):
         new_pos = curr_pos[:]
-        turning_dist = int(round(float(turning_radius)/grid_cell_size))
+        turning_dist = math.ceil(float(turning_radius)/grid_cell_size)
         if (move == 'F'):
             if (curr_pos[2] == NORTH):
                 new_pos[0] -= 1
@@ -174,7 +175,7 @@ class ShortestPath:
     @staticmethod
     def h_score(current_node, end):
 
-        distance =  abs(current_node.x - end.x) + abs(current_node.y - end.y)
+        distance =  (current_node.x - end.x)**2 + (current_node.y - end.y)**2
         
         return distance
 
@@ -227,26 +228,33 @@ class ShortestPath:
             temp = current_node
             while temp.previous:
                 final_path.append(temp.prev_move)
+                # final_path.append(temp.previous)
                 temp = temp.previous
             final_path.reverse()
             print("Done !!")
+            return open_set, closed_set, current_node, final_path
 
         open_set = ShortestPath.clean_open_set(open_set, current_node)
         closed_set.append(current_node)
         neighbors = current_node.neighbors
-        for neighbor in neighbors:
-            if not self.maze.robotPosIsValid([neighbor.x,neighbor.y, neighbor.dir]):
+        
+        for move in moves:
+            curr_pos = [current_node.x,current_node.y,current_node.dir]
+            new_pos = self.getUpdatedPos(curr_pos,move)
+            if not self.maze.robotPosIsValid(new_pos):
                 continue
             else:
+                neighbor = self.grid[new_pos[0]][new_pos[1]][direction_map[new_pos[2]]]
                 temp_g = current_node.g + 1
                 control_flag = 0
                 for k in range(len(open_set)):
-                    if neighbor.x == open_set[k].x and neighbor.y == open_set[k].y:
+                    if neighbor.x == open_set[k].x and neighbor.y == open_set[k].y and neighbor.dir == open_set[k].dir:
                         if temp_g < open_set[k].g:
                             open_set[k].g = temp_g
                             open_set[k].h= ShortestPath.h_score(open_set[k], end)
                             open_set[k].f = open_set[k].g + open_set[k].h
                             open_set[k].previous = current_node
+                            open_set[k].prev_move = move
                         else:
                             pass
                         control_flag = 1
@@ -258,30 +266,42 @@ class ShortestPath:
                     neighbor.h = ShortestPath.h_score(neighbor, end)
                     neighbor.f = neighbor.g + neighbor.h
                     neighbor.previous = current_node
+                    neighbor.prev_move = move
                     open_set.append(neighbor)
 
         return open_set, closed_set, current_node, final_path
 
     def main(self):
+        print("Grid creation: ")
         self.create_grid()
+
+        print("Grid init: ")
         self.fill_grids()
+
+        print("Getting neighbours: ")
         self.get_neighbors()
+        print(self.grid[10][5][0].neighbors)
 
-        for i in range(1,10):
-            for j in range(1,10):
-                print(self.grid[i][j][0].dir)
-
-        grid = self.grid
+        print("Init shortest path: ")
         open_set  = []
         closed_set  = []
         current_node = None
         final_path  = []
-        open_set.append(grid[self.source[0]][self.source[1]][direction_map[self.source[2]]])
-        self.dest = grid[self.dest[0]][self.dest[1]][direction_map[self.dest[2]]]
-        while len(open_set) > 0:
+        self.source = self.grid[self.source[0]][self.source[1]][direction_map[self.source[2]]]
+        self.dest = self.grid[self.dest[0]][self.dest[1]][direction_map[self.dest[2]]]
+        open_set.append(self.source)
+
+        print("Path finding: ")
+        count_iter = 0
+        while len(open_set) > 0 and count_iter <= 1000:
             open_set, closed_set, current_node, final_path = self.start_path(open_set, closed_set, current_node, self.dest)
             if len(final_path) > 0:
                 break
-
+            count_iter += 1
+        if (len(open_set) == 0):
+            print("No possible path!")
+        elif (count_iter > 1000):
+            print("Calculation took too long, aborting process!")
+        print("Reaching here!")
+        print(len(open_set))
         return final_path
-        
