@@ -52,7 +52,6 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim8;
 
 UART_HandleTypeDef huart3;
-DMA_HandleTypeDef hdma_usart3_rx;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -89,6 +88,13 @@ const osThreadAttr_t motortask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for pid_task */
+osThreadId_t pid_taskHandle;
+const osThreadAttr_t pid_task_attributes = {
+  .name = "pid_task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -103,13 +109,13 @@ static void MX_TIM8_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM3_Init(void);
-static void MX_DMA_Init(void);
 static void MX_TIM4_Init(void);
 void StartDefaultTask(void *argument);
 void show(void *argument);
 void encoder_task(void *argument);
 void ultra_sonic_task(void *argument);
 void Motor_Task(void *argument);
+void PID_task(void *argument);
 
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -117,11 +123,14 @@ void Motor_Task(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /*UART Variables*/
-uint8_t aRxBuffer[20] = {0};
+ uint8_t buffer_byte;
+ uint8_t aRxBuffer[3] = {0};
+ uint8_t buffer_indx = 0;
 uint8_t uart_ready = 1;
+uint8_t flag = 0;
 
 /* Motor Variables */
-uint8_t motor_case = 0;
+int motor_case = 0;
 uint16_t pwmL = 0;
 uint16_t pwmR = 0;
 uint16_t time_taken = 0;
@@ -184,7 +193,6 @@ int main(void)
   MX_TIM1_Init();
   MX_USART3_UART_Init();
   MX_TIM3_Init();
-  MX_DMA_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
@@ -230,6 +238,9 @@ int main(void)
 
   /* creation of motortask */
   motortaskHandle = osThreadNew(Motor_Task, NULL, &motortask_attributes);
+
+  /* creation of pid_task */
+  pid_taskHandle = osThreadNew(PID_task, NULL, &pid_task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -522,7 +533,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 3;
+  htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -721,22 +732,6 @@ static void MX_USART3_UART_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Stream1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -800,67 +795,25 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t Analog = 0;
-uint16_t pwm;
-uint16_t set = 250;
-double kp=8;
-double ki=1;
-double kd=5;
-double throttle=3000;
-float pid_p = 0, pid_i = 0, pid_d = 0, PID;
-float error, previous_error;
-unsigned long t_now, t_last, dt;
+int e1_error = 0;
+int e2_error = 0;
+uint16_t target = 3000;
+uint16_t m1_speed = 0;
+uint16_t m2_speed = 0;
 
-void doPID(int lOffset, int rOffset){
-	if(HAL_ADC_PollForConversion(&hadc1,100)==HAL_OK){
-	        Analog=HAL_ADC_GetValue(&hadc1)/10;
-	    }
-	    t_last = t_now;
-	    t_now = HAL_GetTick();
-	    dt = (t_now - t_last) - 1000;
-	    error = Analog - set;
-	    pid_p = kp * error;
-	    if(-10 < error && error < 10){
-	        pid_i = pid_i + (ki*error);
-	    }
-	    pid_d = kd * ((error - previous_error) / dt);
-	    PID = pid_p + pid_i + pid_d;
-
-	    if(PID <- 1000){
-	        PID=-1000;
-	    }
-	    if(PID > 100){
-	        PID=1000;
-	    }
-	    pwm = throttle-PID;
-	    if(pwm < 500){
-	        pwm = 500;
-	    }
-	    else if(pwm > 2000){
-	        pwm = 2000;
-	    }
-
-	    /*Left Wheel*/
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1,  pwm + lOffset);
-		/*Right Wheel*/
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm + rOffset);
-		previous_error = error;
-
-	    HAL_Delay(100);
-}
-
+float KP =0.0008;
 
 void wheels_straight(){
-	htim1.Instance->CCR4 = 146;
-	osDelay(100);
+	htim1.Instance->CCR4 = 147;
+	osDelay(10);
 }
 void wheels_right(int degree){
-	htim1.Instance->CCR4 = 146 + degree;
-	osDelay(100);
+	htim1.Instance->CCR4 = 147 + degree;
+	osDelay(10);
 }
 void wheels_left(int degree){
-	htim1.Instance->CCR4 = 146 - degree;
-	osDelay(100);
+	htim1.Instance->CCR4 = 147 - degree;
+	osDelay(10);
 }
 
 void motor_readjust()
@@ -875,41 +828,56 @@ void motor_readjust()
 	osDelay(500);
 }
 
-/*---------------------------------------Week 9 Task(Indoor)of pwm 2000------------------------------------------------------*/
+/*---------------------------------------Week 8 Task(Indoor)of pwm 2000------------------------------------------------------*/
 
 void move_forward_indoor_dist(int distance_cm)
 {
-	pwmL = 2000;
-	pwmR = 2000;
+	pwmL = 1.05*1500;
+	pwmR = 1500;
 
 	wheels_straight();
+	osDelay(1);
 	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
 
 	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
 
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1.05*pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+	osDelay(1);
 
-	time_taken  = 28.625*distance_cm + 47.306;
-	/* First 10 cm is 320 ms */
-	/* Distance of 20 cm is 610ms
-	 *  Distance of 30 cm is 900ms
-	 * Distance of 40 cm is 1190ms
-	 * Distance of 50 cm is 1480ms
-	 * Distance of 100 cm is 2930ms
-	 * Distance of 120 cm is 3480ms
-	 * Distance of 150 cm is 4310ms
-	 * Equation for PWM 2000
+	/* First 10 cm is  ms */
+	/* Distance of 20 cm is ms
+	 * Distance of 30 cm is ms
+	 * Distance of 40 cm is ms
+	 * Distance of 50 cm is ms
+	 * Distance of 60 cm is ms
+	 * Distance of 100 cm is ms
+	 * Equation for PWM 1500
 	 */
+
+	//1000ms = 24cm
+	//300ms = 10cm
+
+
+	int time_needed = 10000 ;
+
     uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < time_taken ){
+    while(HAL_GetTick()-t_start<time_needed)
+	{
+		fakePID();
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+		wheels_left(3);
+		wheels_straight();
+		wheels_right(1);
 		osDelay(1);
 	}
 	motor_stop();
+	osDelay(1);
 }
 
 void move_backward_indoor_dist(int distance_cm)
@@ -926,18 +894,17 @@ void move_backward_indoor_dist(int distance_cm)
 	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
 	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
 
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1.05*pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
 
-	time_taken  = 28.9*distance_cm + 45;
-	/* First 10 cm is 340 ms */
-	/* Distance of 20 cm is 620ms
-	 *  Distance of 30 cm is 900ms
-	 * Distance of 40 cm is 1180ms
-	 * Distance of 50 cm is 1210ms
-	 * Distance of 100 cm is
-	 * Distance of 120 cm is
-	 * Distance of 150 cm is
+	 time_taken  = 29.415*distance_cm + 27.34;
+	/* First 10 cm is 330 ms */
+	/* Distance of 20 cm is 620 ms
+	 * Distance of 30 cm is 910ms
+	 * Distance of 40 cm is 1200ms
+	 * Distance of 50 cm is 1490ms
+	 * Distance of 60 cm is 1780ms
+	 * Distance of 100 cm is 280ms
 	 * Equation for PWM 2000
 	 */
     uint32_t t_start = HAL_GetTick();
@@ -984,94 +951,330 @@ void move_forward_outdoor_dist(int distance_cm)
 
 
 /*-----------------------------------Assessment Requirement----------------------------------------*/
-void move_straight(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
+
+/*-----------------------------------Code for 3 point Turn ----------------------------------------*/
+void three_point_turnR()
 {
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+	int i = 0;
+	move_indoor_backward_left(35, 300);
+	osDelay(200);
+	move_indoor_forward_right(50,800);
+	osDelay(200);
+	move_indoor_backward_left(20, 800);
+	osDelay(200);
+	move_indoor_forward_right(35,900);
+	osDelay(200);
+	move_indoor_backward_left(17, 870);
+	osDelay(200);
+	i++;
 
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
 
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-
-    uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < milliseconds);
 }
 
-void move_Xcm_straight(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds)
+void three_point_turnL()
 {
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+	int i = 0;
+//	while(i<4)
+//	{
+	move_indoor_backward_right(35, 400);
+	osDelay(200);
+	move_indoor_forward_left(30, 900);
+	osDelay(200);
+	move_indoor_backward_right(25, 800);
+	osDelay(200);
+	move_indoor_forward_left(35, 800);
+	osDelay(200);
+	move_indoor_backward_right(22, 750);
+	osDelay(200);
+	i++;
+//	}
 
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-
-    uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < milliseconds){
-		osDelay(1);
-	}
-
-	motor_stop();
 }
 
-void move_90turnR(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds, uint16_t angle)
+void move_indoor_forward_left(uint8_t angle, int time_ms)
 {
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+	pwmL = 800;
+	pwmR = 1800;
 
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	wheels_right(angle);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1.05*pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-	uint32_t t_start = HAL_GetTick();
-
-	while(HAL_GetTick()-t_start < milliseconds)
-	{
-		osDelay(1);
-	}
-
-	motor_stop();
-}
-
-void move_90turnL(uint16_t pwmL, uint16_t pwmR, unsigned long milliseconds, uint16_t angle)
-{
-
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
+	wheels_straight();
+	osDelay(200);
 	wheels_left(angle);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+
+}
+
+void move_indoor_backward_right(uint8_t angle, int time_ms)
+{
+	pwmL = 1800;
+	pwmR = 800;
+
+	wheels_straight();
+	osDelay(200);
+	wheels_right(angle);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+
+}
+void move_indoor_forward_right(uint8_t angle, int time_ms)
+{
+	pwmL = 1800;
+	pwmR = 800;
+
+	wheels_straight();
+	osDelay(200);
+	wheels_right(angle);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+
+
+}
+
+void move_indoor_backward_left(uint8_t angle, int time_ms)
+{
+	pwmL = 800;
+	pwmR = 1800;
+
+	wheels_straight();
+	osDelay(200);
+	wheels_left(angle);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+}
+
+
+
+
+/*-------------------------------------------------------------------------------------------------*/
+
+void move_90turnR()
+{
+	pwmL = 5000;
+	pwmR = 500;
+
+	time_taken = 560;
+
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	wheels_right(120);
 
 	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
 
 	uint32_t t_start = HAL_GetTick();
 
-	while(HAL_GetTick()-t_start < milliseconds)
+	while(HAL_GetTick()-t_start < time_taken )
 	{
 		osDelay(1);
 	}
 
+	wheels_straight();
+	osDelay(100);
+	motor_stop();
+}
+
+void move_90turnL()
+{
+
+	pwmL = 800;
+	pwmR = 4000;
+	int time_taken = 925;
+	//LEFT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+	//RIGHT WHEELS
+	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	wheels_left(35);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+	uint32_t t_start = HAL_GetTick();
+
+	while(HAL_GetTick()-t_start < time_taken)
+	{
+		osDelay(1);
+	}
+	wheels_straight();
+	osDelay(100);
+	motor_stop();
+}
+
+void fakePID()
+{
+	int expected;
+	expected = 1800;
+
+	if(Ldiff > expected)
+	{
+		pwmL = pwmL - 5;
+	}
+	else if(Ldiff < expected)
+	{
+		pwmL = pwmL + 5;
+
+	}
+
+	if(Rdiff > expected)
+	{
+		pwmR = pwmR - 5;
+	}
+	else if(Rdiff < expected)
+	{
+		pwmR = pwmR + 5;
+
+	}
+
+}
+
+/*-----------------------------------TASK A.5*-----------------------------------------------------------------*/
+
+void A5()
+{
+//	if(F_Distance < 30)
+//	{
+//		move_backward_indoor_dist((30-F_Distance));
+//		osDelay(2000);
+//	}
+//
+//	else
+//	{
+//		osDelay(2000);
+//	}
+
+	if(flag == 1)
+	{
+		motor_stop();
+		return;
+	}
+	//move_backward_indoor_dist(30);
+//
+//	if(F_Distance < 50)
+//	{
+//		move_backward_indoor_dist(50-F_Distance);
+//		osDelay(200);
+//	}
+//
+//	if(F_Distance > 50)
+//	{
+//		move_forward_indoor_dist(F_Distance - 50);
+//		osDelay(200);
+//	}
+
+	move_forward_indoor_dist(200);
+	move_90turnR();
+	osDelay(300);
+
+	//move_backward_indoor_dist(45);
+	osDelay(2000);
+	if(flag == 1)
+	{
+		motor_stop();
+		return;
+	}
+	move_forward_indoor_dist(35);
+	osDelay(300);
+	move_90turnL();
+	osDelay(300);
+	move_forward_indoor_dist(10);
+	osDelay(300);
+	osDelay(2000);
+	if(flag == 1)
+	{
+		motor_stop();
+		return;
+	}
+	move_forward_indoor_dist(25);
+	osDelay(100);
+	move_90turnL();
+	osDelay(300);
+	move_forward_indoor_dist(10);
+	osDelay(2000);
+	if(flag == 1)
+	{
+		motor_stop();
+		return;
+	}
+	move_forward_indoor_dist(40);
+	osDelay(300);
+	move_90turnL();
+	osDelay(300);
+	move_forward_indoor_dist(200);
+	osDelay(2000);
+	if(flag == 1)
+	{
+		motor_stop();
+		return;
+	}
 	motor_stop();
 }
 
@@ -1085,108 +1288,11 @@ void outdoor_fastestcar_150cm()
 	/*First 500ms is 34.5cm  for 4000 pwm
 	 * Subsequent 100ms is 42.1 cm so 7.5cm per 100ms
 	 */
-	move_Xcm_straight(1.05*4000, 4000, 700);
-
 
 }
 
 
 /*-----------------------------------Assessment Requirement----------------------------------------*/
-
-void move_forward(unsigned long milliseconds)
-{
-	//LEFT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	 uint32_t t_start = HAL_GetTick();
-	 while(HAL_GetTick()-t_start < milliseconds){
-		 doPID(0,0);
-	 }
-	 //motor_stop();
-}
-
-//void move_forward_distance(int distance_mm)
-//{
-//	lCounterCum = 0;
-//	lCounterPrev = 0;
-//	 __HAL_TIM_SET_COUNTER(&htim3,0);
-//	int expectedThreshold = distance_mm * hallPerMM;
-//
-//	  //LEFT WHEELS
-//	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-//     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-//
-//	//RIGHT WHEELS
-//	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-//	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-//
-//	 while(lCounterCum < expectedThreshold){
-//		doPID(0,0);
-//	 }
-//	 motor_stop();
-//}
-void move_forward_right_test(int degree){
-	wheels_right(90);
-	throttle=throttle/4;
-	move_forward_distance(238/40*degree);
-	throttle=throttle*4;
-	wheels_straight();
-}
-
-void move_forward_right(int time_mili, int degree){
-	wheels_right(degree);
-	move_forward(time_mili);
-	wheels_straight();
-}
-void move_forward_left_test(int degree){
-	wheels_left(90);
-	throttle=throttle/4;
-	move_forward_distance(238/40*degree);
-	throttle=throttle*4;
-	wheels_straight();
-}
-void move_forward_left(int time_mili, int degree){
-	wheels_left(degree);
-	move_forward(time_mili);
-	wheels_straight();
-}
-
-//void move_backward_distance(int distance_mm)
-//{
-//	lCounterCum = 0;
-//	lCounterPrev = 0;
-//	int expectedThreshold = distance_mm * hallPerMM;
-//
-//	//LEFT WHEELS
-//	 HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-//     HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-//
-//	//RIGHT WHEELS
-//	 HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-//	 HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-//
-//	 while(lCounterCum < expectedThreshold){
-//		doPID(0,0);
-//	 }
-//	 motor_stop();
-//}
-
-void move_backward_right(int distance_mm, int degree){
-	wheels_left(degree);
-	move_backward_distance(distance_mm);
-	wheels_straight();
-}
-
-void move_backward_left(int distance_mm, int degree){
-	wheels_right(degree);
-	move_backward_distance(distance_mm);
-	wheels_straight();
-}
 
 void motor_stop()
 {
@@ -1196,32 +1302,28 @@ void motor_stop()
 
 	 //wheels_straight();
 }
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	/*Prevent unused argument(s) compilation warning */
 	UNUSED(huart);
 	//OLED_ShowString(20, 50, (uint8_t*)"CALLBACK");
-
 	osDelay(1000);
-   if(uart_ready == 1)
+   if(huart->Instance == USART3)
    {
-	   //HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
-	   //osDelay(1000);
-	   uart_ready = 0;
-	   HAL_UART_Transmit(&huart3, aRxBuffer, 20, 0xFFFF);
-//	   if((aRxBuffer[0] == '0' || aRxBuffer[0] == '1' || aRxBuffer[0] == '2' || aRxBuffer[0] == '3' || aRxBuffer[0] == '4' ||
-//		aRxBuffer[0] == '5') || aRxBuffer[0]=='6' && aRxBuffer[0]!='\0' )
-//	   {
-//		   motor_case = aRxBuffer[0] - 48;
-//		   osDelay(1000);
-//	   }
-	   motor_case = aRxBuffer[0];
-	   osDelay(1000);
+	   HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+	   osDelay(100);
+	   //aRxBuffer[buffer_indx++] = buffer_byte;
+
    }
-   uart_ready = 1;
-   sprintf(aRxBuffer[0],'\0');
-   HAL_UART_Receive_IT(&huart3, aRxBuffer, 1);
+   motor_case = aRxBuffer[0];
+   distance = ((uint16_t)(aRxBuffer[1]-48))*10;
+   flag = aRxBuffer[2]-48;
+
+//   else
+//   {
+//	   aRxBuffer[1] = '0';
+//   }
+   HAL_UART_Receive_IT(&huart3, aRxBuffer, 3);
 }
 
 
@@ -1278,20 +1380,13 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
+  if(uart_ready == 1)
+ {
+   HAL_UART_Receive_IT(&huart3, &aRxBuffer, 3);
+ }
 
   for(;;)
   {
-	  if(uart_ready == 1)
-	  {
-		  HAL_UART_Transmit(&huart3, "Enter command:\r\n", sizeof("Enter command:\r\n"), 100);
-		  HAL_UART_Receive_IT(&huart3, aRxBuffer, 1);
-	  }
-
-	  else
-	  {
-		  HAL_UART_Transmit(&huart3, "\nUART is not ready\r\n", sizeof("\nUART is not ready\r\n"), 100);
-	  }
-//
 	  if(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)==0)
 	  {
 		  osDelay(200);
@@ -1315,16 +1410,25 @@ void show(void *argument)
 {
   /* USER CODE BEGIN show */
 	uint8_t ultra[20];
+	uint8_t pwm[10];
 	uint8_t switchcase[10];
+	uint8_t Distance_travelled[10];
+	uint8_t test[3];
   /* Infinite loop */
   for(;;)
   {
-//    sprintf(ultra,"Distance :%5d\0",F_Distance);
-//    OLED_ShowString(10,10,ultra);
-//    OLED_Refresh_Gram();
 
-    sprintf(switchcase,"MotorCase: %d\0",motor_case);
+    sprintf(ultra,"UDistance:%5d\0",F_Distance);
+    OLED_ShowString(10,50,ultra);
+    OLED_Refresh_Gram();
+
+	OLED_ShowString(10,30,aRxBuffer);
+
+    sprintf(switchcase,"MotorCase: %d\0",(char)motor_case);
     OLED_ShowString(10, 10, switchcase);
+    OLED_Refresh_Gram();
+    sprintf(Distance_travelled,"Dist_Tr: %d\0",distance);
+    OLED_ShowString(10, 20, Distance_travelled);
     OLED_Refresh_Gram();
     osDelay(10);
   }
@@ -1349,98 +1453,111 @@ void encoder_task(void *argument)
 	uint16_t Ldir;
 	Lcnt1 = __HAL_TIM_GET_COUNTER(&htim2);
 
-
-
 	uint32_t tick;
 	uint8_t Rtemp[20];
 	uint16_t Rdir;
 	Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
 	tick = HAL_GetTick();
+
+	uint8_t tick_count[10];
   /* Infinite loop */
   for(;;)
   {
-//	 if(HAL_GetTick()-tick > 1000)
-//	 {
-//		 Lcnt2 = __HAL_TIM_GET_COUNTER(&htim2);
-//		 Rcnt2 = __HAL_TIM_GET_COUNTER(&htim3);
-//
-//		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2))
-//		 {
-//			 if(Lcnt2 < Lcnt1){
-//				 Ldiff = Lcnt1- Lcnt2;
-//			 }
-//			 else{
-//				 Ldiff = (65535 - Lcnt2) + Lcnt1;
-//				 if(Ldiff==65535)
-//				 {
-//					 Ldiff = 0;
-//				 }
-//			 }
-//		 }
-//		 else
-//		 {
-//			 if(Lcnt2 > Lcnt1){
-//				 Ldiff = Lcnt2 - Lcnt1;
-//			 }
-//
-//			 else{
-//				 Ldiff = (65535-Lcnt1)+Lcnt2;
-//				 if(Ldiff == 65535){
-//					 Ldiff = 0;
-//				 }
-//			 }
-//		 }
-//
-//		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3)){
-//			 if(Rcnt2<Rcnt1)
-//			 {
-//				 Rdiff = Rcnt1 -Rcnt2;
-//			 }
-//			 else
-//			 {
-//				 Rdiff = (65535-Rcnt2)+Rcnt1;
-//				 if(Rdiff == 65535)
-//				 {
-//					 Rdiff = 0;
-//				 }
-//			 }
-//		 }
-//
-//		 else
-//		 {
-//			 if(Rcnt2 > Rcnt1){
-//				 Rdiff = Rcnt2 - Rcnt1;
-//			 }
-//			 else{
-//				 Rdiff = (65535-Rcnt1)+Rcnt2;
-//				 if(Rdiff == 65535)
-//				 {
-//					 Rdiff = 0;
-//				 }
-//			 }
-//		 }
+	 if(HAL_GetTick()-tick > 1000)
+	 {
+		 Lcnt2 = __HAL_TIM_GET_COUNTER(&htim2);
+		 Rcnt2 = __HAL_TIM_GET_COUNTER(&htim3);
 
-//	  	  sprintf(Ltemp, "LSpeed: %5d\0",Ldiff);
-//		  OLED_ShowString(10,20,Ltemp);
+		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2))
+		 {
+			 if(Lcnt2 < Lcnt1){
+				 Ldiff = Lcnt1- Lcnt2;
+			 }
+			 else
+			 {
+				 Ldiff = (65535 - Lcnt2) + Lcnt1;
+				 if(Ldiff == 65535)
+				 {
+					 Ldiff = 0;
+				 }
+			 }
+		 }
+		 else
+		 {
+			 if(Lcnt2 > Lcnt1)
+			 {
+				 Ldiff = Lcnt2 - Lcnt1;
+				 if(Ldiff == 65535)
+				 {
+					 Ldiff = 0;
+				 }
+			 }
+
+			 else
+			 {
+				 Ldiff = (65535-Lcnt1)+Lcnt2;
+				 if(Ldiff == 65535)
+				 {
+					 Ldiff = 0;
+				 }
+			 }
+		 }
+
+		 if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3))
+		 {
+			 if(Rcnt2<Rcnt1)
+			 {
+				 Rdiff = Rcnt1 -Rcnt2;
+			 }
+			 else
+			 {
+				 Rdiff = (65535-Rcnt2)+Rcnt1;
+				 if(Rdiff == 65535)
+				 {
+					 Rdiff = 0;
+				 }
+			 }
+		 }
+
+		 else
+		 {
+			 if(Rcnt2 > Rcnt1)
+			 {
+				 Rdiff = Rcnt2 - Rcnt1;
+			 }
+			 else
+			 {
+				 Rdiff = (65535-Rcnt1)+Rcnt2;
+				 if(Rdiff == 65535)
+				 {
+					 Rdiff = 0;
+				 }
+
+			 }
+		 }
+
+	  	  sprintf(Ltemp, "LSpeed: %5d\0",Ldiff);
+		  OLED_ShowString(10,30,Ltemp);
 //		  Ldir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2);
 ////		  sprintf(Ltemp, "LDir: %5d \0", Ldir);
 ////		  OLED_ShowString(10,30, Ltemp);
 //
-//		  sprintf(Rtemp, "RSpeed: %5d\0",Rdiff);
-//		  OLED_ShowString(10,30,Rtemp);
-//		  Rdir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
+		  sprintf(Rtemp, "RSpeed: %5d\0",Rdiff);
+		  OLED_ShowString(10,40,Rtemp);
+		  Rdir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
+
 //		  sprintf(Rtemp, "RDir: %5d \0", Rdir);
 //		  OLED_ShowString(10,50, Rtemp);
-//		 Lcnt1 = __HAL_TIM_GET_COUNTER(&htim2);
-//		 Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
-//		 tick = HAL_GetTick();
-//		 osDelay(1);
-//	  }
+		 Lcnt1 = __HAL_TIM_GET_COUNTER(&htim2);
+		 Rcnt1 = __HAL_TIM_GET_COUNTER(&htim3);
+		 tick = HAL_GetTick();
+		 osDelay(1);
+	  }
 	  lCounterCum=__HAL_TIM_GET_COUNTER(&htim3);
 	  char output[12];
 
 	  sprintf(output, "%8d\0",lCounterCum);
-	  OLED_ShowString(10, 40,output);
+	  //OLED_ShowString(10, 40,output);
 	  //osDelay(1);
 
   }
@@ -1461,10 +1578,6 @@ void ultra_sonic_task(void *argument)
 	int triggerCount = 0;
 	int detectionCount = 0;
 	int reqDetectionCount = 1;
-  while(Front_US_Ready == 0)
-  {
-	  osDelay(200);
-  }
   __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_CC1);
   for(;;)
   {
@@ -1500,8 +1613,6 @@ void Motor_Task(void *argument)
 
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 0){break;}
-				if(enableUpdateImage == 1)
-				OLED_ShowString(10, 50, (uint8_t*)"[0] Motor Stop");
 				motor_stop();
 				wheels_straight();
 				break;
@@ -1509,140 +1620,63 @@ void Motor_Task(void *argument)
 			case 'f'://MOVE FORWARD
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 'f'){break;}
-				if(enableUpdateImage == 4)
-				OLED_ShowString(10, 50, (uint8_t*)"[1] Move forward");
-
+				move_forward_indoor_dist(distance);
 				break;
 		/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
 			case 'b'://MOVE BACKWARD
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 'b'){break;}
+				move_backward_indoor_dist(distance);
 				if(enableUpdateImage == 1)
-				OLED_ShowString(10, 50, (uint8_t*)"[2] Move backward");
 				break;
 		/*---------------------------MOTOR 90 LEFT-------------------------------------------------*/
 			case 'l':
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 'B'){break;}
-				if(enableUpdateImage == 1)
-				OLED_ShowString(10, 50, (uint8_t*)"[3] Move forward left");
-				break;
-		/*---------------------------MOTOR 90 RIGHT-------------------------------------------------*/
+				if(motor_case != 'l'){break;}
+
+					break;
+			/*---------------------------MOTOR 90 RIGHT-------------------------------------------------*/
 			case 'r':
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 'r'){break;}
-				if(enableUpdateImage == 1)
-				OLED_ShowString(10, 50, (uint8_t*)"[3] Move forward right");
-				break;
 
-		/*---------------------------ASSESSMENT FUNCTION 80 cm MOTOR STRAIGHT-------------------------------------------------------*/
+					break;
+
+
+			/*-------------------------CALCULATE TURNING RADIUS(TURN RIGHT/LEFT) -------------------------------------------------------------------------*/
 			case 2:
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 2){break;}
-
-				if(enableUpdateImage == 1)
-				OLED_ShowString(10, 50, (uint8_t*)"Move 80 cm Straight");
-
-				motor_readjust();
-				pwmL = 2000;
-				pwmR = 2000;
-				/*Proportional for pwm 2000;*/
-				/* 1500 ms -> 50cm ->pwm 2000*/
-				/* 2000 ms -> 67.2 -> pwm 2000 */
-				/* 2372 ms -> +-80 -> pwm 2000 */
-				/* 3538ms  -> +- 120 -> pwm 2000*/
-				move_Xcm_straight(pwmL, pwmR, 2372);
-				motor_case = 0;
+				three_point_turnR();
 				break;
-		/*-------------------------CALCULATE TURNING RADIUS(TURN LEFT) -------------------------------------------------------------------------*/
 			case 3://INDOOR
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 3){break;}
-				move_forward_indoor_dist(20);
-				move_90turnL(800,2000,2350,30);
+				three_point_turnL();
 				break;
 		/*------------------------Calculate Distance-------------------------------------------------------------------------------------------*/
 			case 4: //INDOOR FORWARD
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 4){break;}
-				distance = 120;
+				distance = 10;
 				move_forward_indoor_dist(distance);
 				break;
 
-			case 5://OUTDOOR FORWARD
+			case 5://INDOOR BACKWARDS
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 				if(motor_case != 5){break;}
-				distance = 0;
-				move_forward_outdoor_dist(distance);
-				break;
-
-			case 6:
-				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-				if(motor_case != 6){break;}
-				distance = 0;
+				distance = 40;
 				move_backward_indoor_dist(distance);
 				break;
 
+			case 6://OUTDOOR FORWARD
+				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
+				if(motor_case != 6){break;}
+				distance = 40;
+				move_forward_outdoor_dist(distance);
+				break;
 
-		/*---------------------------ASSESMENT FUNCTION MOTOR 90-360 Degrees Right Turn-------------------------------------------------*/
-//			case 'r':
-//				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-//				if(motor_case != 'r'){break;}
-//
-//				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
-//				//motor_readjust();
-//
-//
-//				/*Proportional for pwm 2000;*/
-//				move_90turnR(2000,500 , 1850,80);
-////				move_90turnR(2000,500 , 2100);
-////				move_90turnR(2000,500 , 2100);
-////				move_90turnR(2000,500 , 2100);
-//
-//				break;
-//
-//			case 2:
-//				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-//				if(motor_case != 2){break;}
-//
-//				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
-//				//motor_readjust();
-//
-//
-//				/*Proportional for pwm 2000;*/
-//				move_90turnR(2000,500 , 1850,80);
-//				move_90turnR(2000,500 , 1810,80);
-////				move_90turnR(2000,500 , 2100);
-////				move_90turnR(2000,500 , 2100);
-//				break;
-//
-//			case 3:
-//				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
-//				if(motor_case != 3){break;}
-//
-//				OLED_ShowString(10, 50, (uint8_t*)"X Degree(R)");
-//				//motor_readjust();
-//
-//				//move_90turnR(2000,500 , 2100);
-//				/*Proportional for pwm 2000;*/
-//				move_90turnR(2000,500 , 1850,80);
-//				move_90turnR(2000,500 , 1830,80);
-//				move_90turnR(2000,500 , 1850,80);
-//				move_90turnR(2000,500 , 1750,80);
-////				move_90turnR(2000,500 , 2100);
-//				break;
-//		/*--------------------------ASSEESMENT FUNCTION MOTOR 90 Degrees Left Turn--------------------------------------------------*/
-//			case 'l':
-//				if(motor_case != 'l'){break;}
-//
-//				OLED_ShowString(10, 50, (uint8_t*)"X Degree(L)");
-//
-//				motor_readjust();
-//				pwmL = 500;
-//				pwmR = 2000;
-//				/*Proportional for pwm 2000;*/
-//				move_90turnL(pwmL, pwmR, 1850,80);
-//				break;
+
 		/*------------------------ASSESSMENT FOR TASK_2 150 CM (OUTDOOR)---------------------------------------------------*/
 			case 1:
 				while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
@@ -1650,17 +1684,38 @@ void Motor_Task(void *argument)
 
 				outdoor_fastestcar_150cm();
 				break;
+
 			default:
-				OLED_ShowString(10, 50, (uint8_t*)"[10] Default");
 				//wheels_straight();
 				motor_stop();
 				break;
 
 		}
+	//motor_case = 0;
     osDelay(1);
   }
   /* USER CODE END Motor_Task */
 }
+
+/* USER CODE BEGIN Header_PID_task */
+/**
+* @brief Function implementing the pid_task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_PID_task */
+void PID_task(void *argument)
+{
+  /* USER CODE BEGIN PID_task */
+  /* Infinite loop */
+  for(;;)
+  {
+	e1_error = target-Ldiff;
+	e2_error = target-Rdiff;
+  }
+    osDelay(1);
+}
+  /* USER CODE END PID_task */
 
 /**
   * @brief  This function is executed in case of error occurrence.
