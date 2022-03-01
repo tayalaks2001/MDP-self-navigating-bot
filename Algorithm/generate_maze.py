@@ -1,10 +1,13 @@
+import random
 from random import randint
 from tsp import *
 from constants import *
 from utils import *
 from maze import Maze
 
-def get_random_maze_with_obstacles():
+def get_random_maze_with_obstacles(seed = None):
+    if not seed is None:
+        random.seed(seed)
     maze = Maze()
     obstacles = [[0 for _ in range(3)] for _ in range(num_obstacles)]
     for i in range(len(obstacles)):
