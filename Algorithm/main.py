@@ -31,7 +31,7 @@ def main():
     #     command_list.append(commands)
 
     # Sample command list. TODO: Change to actual ouput once algo function changed
-    command_list = ['F','5','R','1','F','2','L','1','B','1','\0']
+    command_list = [['F','5','R','1','F','2','L','1','B','1','\0'],['F','5','R','1','F','2','L','1','B','1','\0']]
     
     return command_list
 
