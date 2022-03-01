@@ -1,4 +1,3 @@
-from shortest_path import ShortestPath
 from tsp import FastestPath
 from maze import Maze
 from constants import *
@@ -32,7 +31,7 @@ def main():
     #     command_list.append(commands)
 
     # Sample command list. TODO: Change to actual ouput once algo function changed
-    command_list = ['F','5','R','1','L','1','\0']
+    command_list = ['F','5','R','1','F','2','L','1','B','1','\0']
     
     return command_list
 
