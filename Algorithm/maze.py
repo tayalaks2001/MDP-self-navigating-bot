@@ -40,24 +40,25 @@ class Maze:
     # generating waypoints- actual point where rover needs to be
     def setWaypoints(self):
         waypoints = []
+        optimal_dist = math.ceil(dist_from_obst/grid_cell_size)
         for obstacle in self.obstacles:
             obs_x,obs_y,obs_dir = obstacle
             fin_x, fin_y, fin_dir = obs_x, obs_y, obs_dir
             if obs_dir == NORTH:
-                fin_x -= int(dist_from_obst/grid_cell_size)
+                fin_x -= optimal_dist
                 fin_dir = SOUTH
             elif obs_dir == SOUTH:
-                fin_x += int(dist_from_obst/grid_cell_size)
+                fin_x += optimal_dist
                 fin_dir = NORTH
             elif obs_dir == EAST:
-                fin_y += int(dist_from_obst/grid_cell_size)
+                fin_y += optimal_dist
                 fin_dir = WEST
             elif obs_dir == WEST:
-                fin_y -= int(dist_from_obst/grid_cell_size)
+                fin_y -= optimal_dist
                 fin_dir = EAST
 
             if fin_x>=num_cols-1 or fin_x<=0 or fin_y>=num_rows-1 or fin_y<=0:
-                self.waypoints = [[float("-inf") for _ in range(3)] for _ in range(num_obstacles)]
+                self.waypoints = [[float("-inf") for _ in range(3)] for _ in range(len(self.obstacles))]
                 return
             
             waypoints.append([fin_x,fin_y,fin_dir])
@@ -73,8 +74,7 @@ class Maze:
         obs = [[num_rows-1,1,NORTH]] + self.obstacles
         for i in range(len(obs)):
             for j in range(i, len(obs)):
-                dist[i][j] = abs(obs[i][0]-obs[j][0]) + \
-                             abs(obs[i][1]-obs[j][1])
+                dist[i][j] = abs(obs[i][0]-obs[j][0]) + abs(obs[i][1]-obs[j][1])
                 dist[j][i] = dist[i][j]
 
         return dist
@@ -84,8 +84,7 @@ class Maze:
         wayp = [grid_start_pos] + self.waypoints
         for i in range(len(wayp)):
             for j in range(i, len(wayp)):
-                dist[i][j] = abs(wayp[i][0]-wayp[j][0]) + \
-                             abs(wayp[i][1]-wayp[j][1])
+                dist[i][j] = abs(wayp[i][0]-wayp[j][0]) + abs(wayp[i][1]-wayp[j][1])
                 dist[j][i] = dist[i][j]
 
         return dist

@@ -22,11 +22,10 @@ class Node():
         return self.position == other.position
     
     def __lt__(self, other):
-        return self.g < other.g
+        return self.f < other.f
     
     def __repr__(self):
         return str(self.position)
-
 
 
 class ShortestPath:
@@ -65,31 +64,29 @@ class ShortestPath:
     @staticmethod
     def isMoveValid(maze, curr_pos, new_pos, move):
         if (move == 'L' or move == 'R'):
-            return ShortestPath.isTurnValid(maze, curr_pos, new_pos)
+            return ShortestPath.isTurnValid(maze, curr_pos, move)
 
         return maze.robotPosIsValid(new_pos)
 
     @staticmethod
-    def isTurnValid(maze, curr_pos, new_pos):
-        x_init, y_init, _ = curr_pos
-        x_fin, y_fin, _ = new_pos
-
-        # check if robot goes out of bounds
-        if (not maze.robotPosIsValid(new_pos)):
-            return False
+    def isTurnValid(maze, curr_pos, move):
+        xi,yi,dir = curr_pos
+        if ((dir==NORTH and move=='L') or (dir==WEST and move=='R')):
+            xn, yn = xi-1, yi-1
+        elif ((dir==WEST and move=='L') or (dir==SOUTH and move=='R')):
+            xn, yn = xi+1, yi-1
+        elif ((dir==SOUTH and move=='L') or (dir==EAST and move=='R')):
+            xn, yn = xi+1, yi+1
+        elif ((dir==EAST and move=='L') or (dir==NORTH and move=='R')):
+            xn, yn = xi-1, yi+1
         
-        # check if any obstacle in bounding box formed by start and final pos
-        left_bound, right_bound = min(y_init, y_fin), max(y_init, y_fin)
-        lower_bound, upper_bound = min(x_init, x_fin), max(x_init, x_fin)
-
-        for x in range(lower_bound, upper_bound+1):
-            for y in range(left_bound, right_bound+1):
-                if maze.posIsObstacle(x,y):
-                    # TODO: check distance of this obstacle from path of robot
-                    # only return false if distance to path is less than that allowed by robot dimensions
+        for x in range(min(xi,xn),max(xi,xn)+1):
+            for y in range(min(yi,yn),max(yi,yn)+1):
+                if (not maze.robotPosIsValid([x,y,None])):
                     return False
         
         return True
+
 
     @staticmethod
     def astar(maze, start, end):
@@ -150,9 +147,6 @@ class ShortestPath:
             for child in children:
 
                 # Child is on the closed list
-                # for closed_child in closed_list:
-                #     if child == closed_child:
-                #         continue
                 if tuple(child.position) in closed_list:
                     continue
 
@@ -161,11 +155,6 @@ class ShortestPath:
                 # Using manhattan distance as heuristic
                 child.h = abs(child.position[0] - end_node.position[0]) + abs(child.position[1] - end_node.position[1])
                 child.f = child.g + child.h
-
-                if (child.position[0]==17 and child.position[1]==1 and child.position[2]==NORTH):
-                    print("17,1,N: ",child.f, child.g, child.h)
-                if (child.position[1]==4 and child.position[2]==EAST):
-                    print(child.position[0],",4,E: ",child.f, child.g, child.h)    
 
                 # Child is already in the open list
                 for idx in range(len(open_list)):
@@ -181,43 +170,87 @@ class ShortestPath:
                 heapq.heappush(open_list, child)
 
 
-    @staticmethod
-    def main(obstacles):
-        maze = Maze()
-        maze.setObstacles(obstacles)
-        maze.setObstacles([[1,1,SOUTH]])
-        waypoints = maze.getWaypoints()
-        waypoints_dist = maze.getDistBetweenWaypoints()
 
-        if (waypoints is None):
-            print("The images for these obstacles can not be scanned!")
-            return None
+def main(obstacles):
+    obstacles = [[9, 11, 'S'], [5, 17, 'W'], [0, 4, 'S'], [17, 16, 'N'], [6, 3, 'N']]
+    temp = [[1,1,SOUTH],[2,2,SOUTH],[3,3,SOUTH]]
+    obstacles.extend(temp)
+    maze = Maze()
+    maze.setObstacles(obstacles)
+    waypoints = maze.getWaypoints()
+    waypoints_dist = maze.getDistBetweenWaypoints()
 
-        fp = FastestPath()
-        visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
-        final_path = []
+    if (waypoints is None):
+        print("The images for these obstacles can not be scanned!")
+        return None
 
-        start = [18,1,NORTH]  
-        for i in visit_order[1:]:
-            end = waypoints[i-1]
-            print(start, end)
-            path = ShortestPath.astar(maze, start, end)
-            print(path)
-            final_path.append(path)
-            start = end
+    fp = FastestPath()
+    visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
+    final_path = []
+
+    start = start_pos  
+    for i in visit_order[1:]:
+        end = waypoints[i-1]
+        # possibilites = [end[:] for _ in range(5)]
+        # center, right, left, up, down = possibilites
+        # up[0] -= 1
+        # down[0] += 1
+        # left[1] -= 1
+        # right[1] += 1
+        # for p in possibilites:
+        #     if not maze.robotPosIsValid(p):
+        #         continue
+        #     end = p
+        #     print(start, end)
+        #     path = ShortestPath.astar(maze, start, end)
+        #     print(path)
+        #     if path is not None:
+        #         break
+
+        print(start, end)
+        path = ShortestPath.astar(maze, start, end)
+        print(path)    
+
+        if path is None:
+            continue
+
+        final_path.append(path)
+        start = end
+    
+    return final_path
+
+
+def processOutput(path):
+
+    new_path = []
+    for p in path:
+        curr_move = p[0]
+        count = 1
+        new_p = []
+
+        for move in p[1:]:
+            if move == curr_move:
+                count += 1
+            else:
+                new_p.append(curr_move)
+                new_p.append(str(count))
+                curr_move = move
+                count = 1
         
-        return final_path
+        new_p.append(curr_move)
+        new_p.append(str(count))
+
+        new_path.append(new_p)
+    
+    return new_path
 
 
 if __name__ == '__main__':
-    # maze = Maze()
-    # obstacles = [[12,9,SOUTH],[17,12,WEST]]
-    # maze.setObstacles(obstacles)
     maze = get_random_maze_with_obstacles()
     obstacles = maze.getObstacles()
     print(obstacles)
-    path = ShortestPath().main(obstacles)
-    if (path is None):
+    path = main(obstacles)
+    if (len(path) == 0):
         print("No path found!")
     else:
-        print(path)
+        print(processOutput(path))
