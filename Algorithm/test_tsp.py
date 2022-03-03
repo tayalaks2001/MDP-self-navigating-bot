@@ -11,7 +11,7 @@ obstacles = curr_maze.getObstacles()
 print("Obstacles:", obstacles)
 
 fp = FastestPath()
-dist = curr_maze.get_dist_between_obstacles()
+dist = curr_maze.getDistBetweenObstacles()
 visit_order = fp.get_order_of_visit(dist, num_obstacles+1)
 print(visit_order)
 

@@ -185,7 +185,7 @@ def tsp():
     obstacles = curr_maze.getObstacles()
     print("Obstacles:", obstacles)
 
-    dist = curr_maze.get_dist_between_obstacles()
+    dist = curr_maze.getDistBetweenObstacles()
     print(len(obstacle_list))
     visit_order = fp.get_order_of_visit(dist, len(obstacle_list)+1)
     print(visit_order)
@@ -200,7 +200,7 @@ def shortest_path():
 
     # obstacles = maze.getObstacles()
     # waypoints = maze.getWaypoints()
-    # obstacles_dist = maze.get_dist_between_obstacles()
+    # obstacles_dist = maze.getDistBetweenObstacles()
     # waypoints_dist = maze.getDistBetweenWaypoints()
     # #fp = FastestPath()
     # print(len(obstacle_list))

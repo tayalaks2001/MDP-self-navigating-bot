@@ -14,7 +14,7 @@ print("Obstacles:", obstacles)
 
 obstacles = maze.getObstacles()
 waypoints = maze.getWaypoints()
-obstacles_dist = maze.get_dist_between_obstacles()
+obstacles_dist = maze.getDistBetweenObstacles()
 waypoints_dist = maze.getDistBetweenWaypoints()
 fp = FastestPath()
 path = fp.get_order_of_visit(waypoints_dist, num_obstacles+1)

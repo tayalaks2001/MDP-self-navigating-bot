@@ -69,7 +69,7 @@ class Maze:
     def getWaypoints(self):
         return self.waypoints
 
-    def get_dist_between_obstacles(self):
+    def getDistBetweenObstacles(self):
         dist = [[float("inf") for _ in range(len(self.obstacles)+1)] for _ in range(len(self.obstacles)+1)]
         obs = [[num_rows-1,1,NORTH]] + self.obstacles
         for i in range(len(obs)):
