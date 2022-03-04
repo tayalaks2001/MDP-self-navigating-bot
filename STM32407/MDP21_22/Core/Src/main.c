@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "ICM-20948.h"
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -895,7 +895,7 @@ void motor_readjust()
 
 void move_forward_indoor_dist(int distance_mm)
 {
-	pwmL = 1.05*1500;
+	pwmL = 1.03*1500;
 	pwmR = 1500;
 
 	wheels_straight();
@@ -931,10 +931,11 @@ void move_forward_indoor_dist(int distance_mm)
 		fakePID();
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-		wheels_left(3);
+		wheels_left(5);
+		osDelay(20);
 		wheels_straight();
-		wheels_right(1);
-		osDelay(1);
+		wheels_right(5);
+		osDelay(15);
 	}
 	motor_stop();
 	osDelay(1);
@@ -978,10 +979,11 @@ void move_backward_indoor_dist(int distance_mm)
 		fakePID();
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-		wheels_left(3);
+		wheels_left(5);
+		osDelay(18);
 		wheels_straight();
-		wheels_right(1);
-		osDelay(1);
+		wheels_right(5);
+		osDelay(15);
 	}
 	motor_stop();
 	osDelay(1);
@@ -1086,70 +1088,123 @@ void move_backward_outdoor_dist(int distance_mm)
 /*-----------------------------------Code for 3 point Turn ----------------------------------------*/
 void indoor_three_point_turnR()
 {
-	move_indoor_backward_left(35, 300);
+	move_indoor_forward_right(120,500);
+	osDelay(500);
+	move_indoor_backward_left(40, 500);
 	osDelay(200);
-	move_indoor_forward_right(50,800);
+	move_indoor_forward_right(80,550);
 	osDelay(200);
-	move_indoor_backward_left(20, 800);
-	osDelay(200);
-	move_indoor_forward_right(35,900);
-	osDelay(200);
-	move_indoor_backward_left(30, 870);
+	move_indoor_backward_left(35, 580);
 	osDelay(200);
 }
 
 void indoor_three_point_turnL()
 {
-	int i = 0;
-	move_indoor_backward_right(35, 400);
+	move_indoor_forward_left(50, 500);
 	osDelay(200);
-	move_indoor_forward_left(30, 900);
+	move_indoor_backward_right(80, 500);
 	osDelay(200);
-	move_indoor_backward_right(25, 800);
+	move_indoor_forward_left(20, 700);
 	osDelay(200);
-	move_indoor_forward_left(35, 800);
-	osDelay(200);
-	move_indoor_backward_right(37, 770);
+	move_indoor_backward_right(50, 700);
 	osDelay(200);
 }
 
 void outdoor_three_point_turnR()
 {
-	move_outdoor_backward_left(35, 300);
+	move_outdoor_forward_right(120,500);
+	osDelay(500);
+	move_outdoor_backward_left(40, 500);
 	osDelay(200);
-	move_outdoor_forward_right(50,800);
+	move_outdoor_forward_right(80,550);
 	osDelay(200);
-	move_outdoor_backward_left(20, 800);
-	osDelay(200);
-	move_outdoor_forward_right(35,900);
-	osDelay(200);
-	move_outdoor_backward_left(25, 870);
+	move_outdoor_backward_left(35, 580);
 	osDelay(200);
 }
 
 void outdoor_three_point_turnL()
 {
-	move_outdoor_backward_right(35, 400);
+	move_outdoor_forward_left(50, 500);
 	osDelay(200);
-	move_outdoor_forward_left(30, 900);
+	move_outdoor_backward_right(80, 500);
 	osDelay(200);
-	move_outdoor_backward_right(25, 800);
+	move_outdoor_forward_left(20, 700);
 	osDelay(200);
-	move_outdoor_forward_left(35, 800);
+	move_outdoor_backward_right(50, 700);
 	osDelay(200);
-	move_outdoor_backward_right(24, 770);
+}
+
+
+void move_indoor_forward_right(uint8_t angle, int time_ms)
+{
+	pwmL = 2000;
+	pwmR = 1500;
+
+	wheels_straight();
 	osDelay(200);
+	wheels_right(angle);
+	osDelay(200);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+
+
+}
+
+void move_indoor_backward_left(uint8_t angle, int time_ms)
+{
+	pwmL = 1500;
+	pwmR = 2000;
+
+	wheels_straight();
+	osDelay(200);
+	wheels_left(angle);
+	osDelay(200);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
 }
 
 
 void move_indoor_forward_left(uint8_t angle, int time_ms)
 {
-	pwmL = 800;
-	pwmR = 1800;
+	pwmL = 1500;
+	pwmR = 2000;
 
 	wheels_straight();
 	osDelay(200);
 	wheels_left(angle);
+	osDelay(200);
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
@@ -1171,12 +1226,13 @@ void move_indoor_forward_left(uint8_t angle, int time_ms)
 
 void move_indoor_backward_right(uint8_t angle, int time_ms)
 {
-	pwmL = 1800;
-	pwmR = 800;
+	pwmL = 2000;
+	pwmR = 1500;
 
 	wheels_straight();
 	osDelay(200);
 	wheels_right(angle);
+	osDelay(200);
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
@@ -1195,73 +1251,15 @@ void move_indoor_backward_right(uint8_t angle, int time_ms)
 	motor_stop();
 
 }
-void move_indoor_backward_left(uint8_t angle, int time_ms)
-{
-	pwmL = 800;
-	pwmR = 1800;
-
-	wheels_straight();
-	osDelay(200);
-	wheels_left(angle);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-
-			//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-
-
-    uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < time_ms ){
-		osDelay(1);
-	}
-	motor_stop();
-}
-
-
-void move_indoor_forward_right(uint8_t angle, int time_ms)
-{
-	pwmL = 1800;
-	pwmR = 800;
-
-	wheels_straight();
-	osDelay(200);
-	wheels_right(angle);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-			//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-
-
-    uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < time_ms ){
-		osDelay(1);
-	}
-	motor_stop();
-
-
-}
-
 void move_outdoor_forward_left(uint8_t angle, int time_ms)
 {
-	pwmL = 800;
-	pwmR = 1800;
+	pwmL = 1500;
+	pwmR = 2000;
 
 	wheels_straight();
 	osDelay(200);
 	wheels_left(angle);
+	osDelay(200);
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
@@ -1278,17 +1276,17 @@ void move_outdoor_forward_left(uint8_t angle, int time_ms)
 		osDelay(1);
 	}
 	motor_stop();
-
 }
 
 void move_outdoor_backward_right(uint8_t angle, int time_ms)
 {
-	pwmL = 1800;
-	pwmR = 800;
+	pwmL = 2000;
+	pwmR = 1500;
 
 	wheels_straight();
 	osDelay(200);
 	wheels_right(angle);
+	osDelay(200);
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
@@ -1305,16 +1303,16 @@ void move_outdoor_backward_right(uint8_t angle, int time_ms)
 		osDelay(1);
 	}
 	motor_stop();
-
 }
 void move_outdoor_forward_right(uint8_t angle, int time_ms)
 {
-	pwmL = 1800;
-	pwmR = 800;
+	pwmL = 2000;
+	pwmR = 1500;
 
 	wheels_straight();
 	osDelay(200);
 	wheels_right(angle);
+	osDelay(200);
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
@@ -1333,18 +1331,18 @@ void move_outdoor_forward_right(uint8_t angle, int time_ms)
 		osDelay(1);
 	}
 	motor_stop();
-
 
 }
 
 void move_outdoor_backward_left(uint8_t angle, int time_ms)
 {
-	pwmL = 800;
-	pwmR = 1800;
+	pwmL = 1500;
+	pwmR = 2000;
 
 	wheels_straight();
 	osDelay(200);
 	wheels_left(angle);
+	osDelay(200);
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
@@ -1364,8 +1362,6 @@ void move_outdoor_backward_left(uint8_t angle, int time_ms)
 	}
 	motor_stop();
 }
-
-
 /*-------------------------------------------------------------------------------------------------*/
 
 void move_90turnR()
@@ -1858,7 +1854,7 @@ void Motor_Task(void *argument)
 				case 4: //INDOOR FORWARD
 					osDelay(2000);
 					if(motor_case != 4){break;}
-					distance = 40;
+					distance = 2000;
 					move_forward_indoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1866,7 +1862,7 @@ void Motor_Task(void *argument)
 				case 5://INDOOR BACKWARDS
 					osDelay(2000);
 					if(motor_case != 5){break;}
-					distance = 40;
+					distance = 2000;
 					move_backward_indoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1988,17 +1984,17 @@ void gyro_acce(void *argument)
   // Set up
 	// read who am i (verify)
   uint8_t reg_val;
-  while(reg_val != BO_WHO_AM_I)
-  {
-		HAL_I2C_Mem_Read(&hi2c1, IMU_I2C_ADDRESS, B0_WHO_AM_I, 1, &reg_val, 1, 0xFFFF);
-	    osDelay(1);
-  }
-
-  // set up (reset)
-  HAL_I2C_Mem_Write(&hi2c1, IMU_I2C_ADDRESS, B0_PWR_MGMT_1,1, &reg_val, 1, 0xFFFF);
-  osDelay(100);
-  // wake up
-  HAL_I2C_Mem_Read(&hi2c1, IMU_I2C_ADDRESS, B0_PWR_MGMT_1, 1, &reg_val, 1, 0xFFFF);
+//  while(reg_val != BO_WHO_AM_I)
+//  {
+//		HAL_I2C_Mem_Read(&hi2c1, IMU_I2C_ADDRESS, B0_WHO_AM_I, 1, &reg_val, 1, 0xFFFF);
+//	    osDelay(1);
+//  }
+//
+//  // set up (reset)
+//  HAL_I2C_Mem_Write(&hi2c1, IMU_I2C_ADDRESS, B0_PWR_MGMT_1,1, &reg_val, 1, 0xFFFF);
+//  osDelay(100);
+//  // wake up
+//  HAL_I2C_Mem_Read(&hi2c1, IMU_I2C_ADDRESS, B0_PWR_MGMT_1, 1, &reg_val, 1, 0xFFFF);
 
   // set sample mode
 
