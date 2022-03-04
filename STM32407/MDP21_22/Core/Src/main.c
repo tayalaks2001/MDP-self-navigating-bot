@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "ICM-20948.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -37,13 +38,15 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define IMU_I2C_ADDRESS (0x68 << 1)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
 CAN_HandleTypeDef hcan1;
+
+I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
@@ -90,6 +93,13 @@ const osThreadAttr_t motortask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for Gyro */
+osThreadId_t GyroHandle;
+const osThreadAttr_t Gyro_attributes = {
+  .name = "Gyro",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -106,11 +116,13 @@ static void MX_USART3_UART_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_DMA_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_I2C1_Init(void);
 void StartDefaultTask(void *argument);
 void show(void *argument);
 void encoder_task(void *argument);
 void ultra_sonic_task(void *argument);
 void Motor_Task(void *argument);
+void gyro_acce(void *argument);
 
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -119,11 +131,11 @@ void Motor_Task(void *argument);
 /* USER CODE BEGIN 0 */
 /*UART Variables*/
  uint8_t buffer_byte;
- uint8_t aRxBuffer[2] = {0};
+ uint8_t aRxBuffer[5] = {0};
  uint8_t aTxBuffer[1]= {0};
  uint8_t buffer_indx = 0;
 uint8_t uart_ready = 1;
-uint8_t flag = 0;
+uint8_t flag = '0';
 
 /* Motor Variables */
 int motor_case = 0;
@@ -187,10 +199,11 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM8_Init();
   MX_TIM1_Init();
-  MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_TIM3_Init();
+  MX_DMA_Init();
   MX_TIM4_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
@@ -235,6 +248,9 @@ int main(void)
 
   /* creation of motortask */
   motortaskHandle = osThreadNew(Motor_Task, NULL, &motortask_attributes);
+
+  /* creation of Gyro */
+  GyroHandle = osThreadNew(gyro_acce, NULL, &Gyro_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -382,6 +398,40 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 400000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
 
 }
 
@@ -843,7 +893,7 @@ void motor_readjust()
 
 /*---------------------------------------Week 8 Task(Indoor)of pwm 2000------------------------------------------------------*/
 
-void move_forward_indoor_dist(int distance_cm)
+void move_forward_indoor_dist(int distance_mm)
 {
 	pwmL = 1.05*1500;
 	pwmR = 1500;
@@ -873,7 +923,7 @@ void move_forward_indoor_dist(int distance_cm)
 
 
 
-	int time_needed = 38.296*distance_cm + 36.538;
+	int time_needed = 3.8296*distance_mm + 36.538;
 
     uint32_t t_start = HAL_GetTick();
     while(HAL_GetTick()-t_start<time_needed)
@@ -890,7 +940,7 @@ void move_forward_indoor_dist(int distance_cm)
 	osDelay(1);
 }
 
-void move_backward_indoor_dist(int distance_cm)
+void move_backward_indoor_dist(int distance_mm)
 {
 	pwmL = 1.05*1500;
 	pwmR = 1500;
@@ -920,7 +970,7 @@ void move_backward_indoor_dist(int distance_cm)
 
 
 
-	int time_needed = 38.296*distance_cm + 36.538;
+	int time_needed = 3.8296*distance_mm + 36.538;
 
     uint32_t t_start = HAL_GetTick();
     while(HAL_GetTick()-t_start<time_needed)
@@ -937,7 +987,7 @@ void move_backward_indoor_dist(int distance_cm)
 	osDelay(1);
 }
 /*---------------------------------------Week 9 Task(outdoor)of pwm 2000------------------------------------------------------*/
-void move_forward_outdoor_dist(int distance_cm)
+void move_forward_outdoor_dist(int distance_mm)
 {
 	pwmL = 1.05*1500;
 	pwmR = 1500;
@@ -967,7 +1017,7 @@ void move_forward_outdoor_dist(int distance_cm)
 
 
 
-	int time_needed = 38.296*distance_cm + 36.538;
+	int time_needed = 4.0*distance_mm + 36.538;
 
     uint32_t t_start = HAL_GetTick();
     while(HAL_GetTick()-t_start<time_needed)
@@ -975,16 +1025,16 @@ void move_forward_outdoor_dist(int distance_cm)
 		fakePID();
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-		wheels_left(2);
+		wheels_left(3);
 		wheels_straight();
-		wheels_right(1);
+		wheels_right(2);
 		osDelay(1);
 	}
 	motor_stop();
 	osDelay(1);
 }
 
-void move_backward_outdoor_dist(int distance_cm)
+void move_backward_outdoor_dist(int distance_mm)
 {
 	pwmL = 1.05*1500;
 	pwmR = 1500;
@@ -1014,7 +1064,7 @@ void move_backward_outdoor_dist(int distance_cm)
 
 
 
-	int time_needed = 38.296*distance_cm + 36.538;
+	int time_needed = 4.0*distance_mm + 36.6538;
 
     uint32_t t_start = HAL_GetTick();
     while(HAL_GetTick()-t_start<time_needed)
@@ -1044,7 +1094,7 @@ void indoor_three_point_turnR()
 	osDelay(200);
 	move_indoor_forward_right(35,900);
 	osDelay(200);
-	move_indoor_backward_left(24, 870);
+	move_indoor_backward_left(30, 870);
 	osDelay(200);
 }
 
@@ -1059,7 +1109,7 @@ void indoor_three_point_turnL()
 	osDelay(200);
 	move_indoor_forward_left(35, 800);
 	osDelay(200);
-	move_indoor_backward_right(24, 770);
+	move_indoor_backward_right(37, 770);
 	osDelay(200);
 }
 
@@ -1073,7 +1123,7 @@ void outdoor_three_point_turnR()
 	osDelay(200);
 	move_outdoor_forward_right(35,900);
 	osDelay(200);
-	move_outdoor_backward_left(23, 870);
+	move_outdoor_backward_left(25, 870);
 	osDelay(200);
 }
 
@@ -1145,6 +1195,35 @@ void move_indoor_backward_right(uint8_t angle, int time_ms)
 	motor_stop();
 
 }
+void move_indoor_backward_left(uint8_t angle, int time_ms)
+{
+	pwmL = 800;
+	pwmR = 1800;
+
+	wheels_straight();
+	osDelay(200);
+	wheels_left(angle);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+}
+
+
 void move_indoor_forward_right(uint8_t angle, int time_ms)
 {
 	pwmL = 1800;
@@ -1174,35 +1253,6 @@ void move_indoor_forward_right(uint8_t angle, int time_ms)
 
 
 }
-
-void move_indoor_backward_left(uint8_t angle, int time_ms)
-{
-	pwmL = 800;
-	pwmR = 1800;
-
-	wheels_straight();
-	osDelay(200);
-	wheels_left(angle);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-
-			//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-
-
-    uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < time_ms ){
-		osDelay(1);
-	}
-	motor_stop();
-}
-
 
 void move_outdoor_forward_left(uint8_t angle, int time_ms)
 {
@@ -1407,88 +1457,6 @@ void fakePID()
 
 }
 
-/*-----------------------------------TASK A.5*-----------------------------------------------------------------*/
-
-void A5()
-{
-//	if(F_Distance < 30)
-//	{
-//		move_backward_indoor_dist((30-F_Distance));
-//		osDelay(2000);
-//	}
-//
-//	else
-//	{
-//		osDelay(2000);
-//	}
-
-	if(flag == 1)
-	{
-		motor_stop();
-		return;
-	}
-	//move_backward_indoor_dist(30);
-//
-//	if(F_Distance < 50)
-//	{
-//		move_backward_indoor_dist(50-F_Distance);
-//		osDelay(200);
-//	}
-//
-//	if(F_Distance > 50)
-//	{
-//		move_forward_indoor_dist(F_Distance - 50);
-//		osDelay(200);
-//	}
-
-	move_forward_indoor_dist(200);
-	move_90turnR();
-	osDelay(300);
-
-	//move_backward_indoor_dist(45);
-	osDelay(2000);
-	if(flag == 1)
-	{
-		motor_stop();
-		return;
-	}
-	move_forward_indoor_dist(35);
-	osDelay(300);
-	move_90turnL();
-	osDelay(300);
-	move_forward_indoor_dist(10);
-	osDelay(300);
-	osDelay(2000);
-	if(flag == 1)
-	{
-		motor_stop();
-		return;
-	}
-	move_forward_indoor_dist(25);
-	osDelay(100);
-	move_90turnL();
-	osDelay(300);
-	move_forward_indoor_dist(10);
-	osDelay(2000);
-	if(flag == 1)
-	{
-		motor_stop();
-		return;
-	}
-	move_forward_indoor_dist(40);
-	osDelay(300);
-	move_90turnL();
-	osDelay(300);
-	move_forward_indoor_dist(200);
-	osDelay(2000);
-	if(flag == 1)
-	{
-		motor_stop();
-		return;
-	}
-	motor_stop();
-}
-
 /*-----------------------------------OUTDOOR FASTEST CAR CODE--------------------------------------------------*/
 
 void outdoor_fastestcar_150cm()
@@ -1524,8 +1492,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	   osDelay(100);
    }
    motor_case = aRxBuffer[0];
-   distance = ((uint16_t)(aRxBuffer[1]-48))*10;
-   HAL_UART_Receive_DMA(&huart3, aRxBuffer,2);
+   distance = ((uint16_t)(aRxBuffer[1]-48))*1000 + (uint16_t)(aRxBuffer[2]-48)*100 + ((uint16_t)aRxBuffer[3]-48)*10 + ((uint16_t)aRxBuffer[4]-48);
+   HAL_UART_Receive_DMA(&huart3, aRxBuffer,5);
 }
 
 
@@ -1590,7 +1558,7 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
 
-   HAL_UART_Receive_DMA(&huart3, aRxBuffer, 2);
+   HAL_UART_Receive_DMA(&huart3, aRxBuffer, 5);
    HAL_UART_Transmit_DMA(&huart3, aTxBuffer, 1);
   for(;;)
   {
@@ -1629,13 +1597,16 @@ void show(void *argument)
     sprintf(switchcase,"MotorCase: %d\0",(char)motor_case);
     OLED_ShowString(10, 10, switchcase);
     OLED_Refresh_Gram();
+    osDelay(10);
 
     sprintf(Distance_travelled,"Dist_Tr: %d\0",distance);
     OLED_ShowString(10, 20, Distance_travelled);
     OLED_Refresh_Gram();
+    osDelay(10);
 
 	OLED_ShowString(10,30,aRxBuffer);
 	OLED_Refresh_Gram();
+	osDelay(10);
 
 	if(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0)
 	{
@@ -1643,7 +1614,7 @@ void show(void *argument)
 		osDelay(10);
 		sprintf(Mode, "Mode : %s\0", mode_ind);
 		OLED_ShowString(10, 40, Mode);
-		osDelay(10);
+		osDelay(100);
 	}
 	else if (HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==1)
 	{
@@ -1651,7 +1622,7 @@ void show(void *argument)
 		osDelay(10);
 		sprintf(Mode, "Mode : %s\0", mode_out);
 		OLED_ShowString(10, 40, Mode);
-		osDelay(10);
+		osDelay(100);
 	}
     sprintf(ultra,"UDistance:%5d\0",F_Distance);
     OLED_ShowString(10,50,ultra);
@@ -1846,24 +1817,28 @@ void Motor_Task(void *argument)
 					if(motor_case != 'f' && flag != '1'){break;}
 					flag = '0';
 					move_forward_indoor_dist(distance);
+					motor_case =0;
 					break;
 			/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
 				case 'b'://MOVE BACKWARD
 					if(motor_case != 'b'&& flag!='1'){break;}
 					flag = '0';
 					move_backward_indoor_dist(distance);
+					motor_case =0;
 					break;
 			/*---------------------------MOTOR 90 LEFT-------------------------------------------------*/
 				case 'l':
 					if(motor_case != 'l' && flag != '1'){break;}
 					flag = '0';
 					indoor_three_point_turnL();
-						break;
+					motor_case =0;
+					break;
 				/*---------------------------MOTOR 90 RIGHT-------------------------------------------------*/
 				case 'r':
 					if(motor_case != 'r' && flag !='1'){break;}
 					flag = '0';
 					indoor_three_point_turnR();
+					motor_case =0;
 					break;
 				/*-------------------------CALCULATE TURNING RADIUS(TURN RIGHT/LEFT) -------------------------------------------------------------------------*/
 
@@ -1896,21 +1871,15 @@ void Motor_Task(void *argument)
 					motor_case =0;
 					break;
 
-				case 6://OUTDOOR FORWARD
-					osDelay(2000);
-					if(motor_case != 6){break;}
-					distance = 40;
-					move_forward_outdoor_dist(distance);
-					motor_case =0;
-					break;
-
 			/*------------------------ASSESSMENT FOR TASK_2 150 CM (OUTDOOR)---------------------------------------------------*/
 				case 1:
+					osDelay(10);
 					break;
 
 				default:
 					wheels_straight();
 					motor_stop();
+					osDelay(10);
 					break;
 		  	  }
 
@@ -1931,6 +1900,7 @@ void Motor_Task(void *argument)
 					if(motor_case != 'f' && flag != '1'){break;}
 					flag = '0';
 					move_forward_outdoor_dist(distance);
+					motor_case =0;
 					break;
 			/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
 				case 'b'://MOVE BACKWARD
@@ -1938,6 +1908,7 @@ void Motor_Task(void *argument)
 					if(motor_case != 'b'&& flag!='1'){break;}
 					flag = '0';
 					move_backward_outdoor_dist(distance);
+					motor_case =0;
 					break;
 			/*---------------------------MOTOR 90 LEFT-------------------------------------------------*/
 				case 'l':
@@ -1945,13 +1916,15 @@ void Motor_Task(void *argument)
 					if(motor_case != 'l' && flag != '1'){break;}
 					flag = '0';
 					outdoor_three_point_turnL();
-						break;
+					motor_case =0;
+					break;
 				/*---------------------------MOTOR 90 RIGHT-------------------------------------------------*/
 				case 'r':
 					while(HAL_GPIO_ReadPin(Enable_Switch_GPIO_Port, Enable_Switch_Pin)==0);
 					if(motor_case != 'r' && flag !='1'){break;}
 					flag = '0';
 					outdoor_three_point_turnR();
+					motor_case =0;
 					break;
 				/*-------------------------CALCULATE TURNING RADIUS(TURN RIGHT/LEFT) -------------------------------------------------------------------------*/
 				case 2:
@@ -1970,7 +1943,7 @@ void Motor_Task(void *argument)
 				case 4:
 					osDelay(2000);
 					if(motor_case != 4){break;}
-					distance = 100;
+					distance = 200;
 					move_forward_outdoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1983,28 +1956,62 @@ void Motor_Task(void *argument)
 					motor_case =0;
 					break;
 
-				case 6://OUTDOOR FORWARD
-					osDelay(2000);;
-					if(motor_case != 6){break;}
-					distance = 100;
-					move_forward_outdoor_dist(distance);
-					motor_case =0;
-					break;
-
 			/*------------------------ASSESSMENT FOR TASK_2 150 CM (OUTDOOR)---------------------------------------------------*/
 				case 1:
+					osDelay(10);
 					break;
 
 				default:
 					wheels_straight();
 					motor_stop();
+					osDelay(10);
 					break;
 		  }
 	  }
 	flag = '1';
-    osDelay(1);
+    osDelay(10);
   }
   /* USER CODE END Motor_Task */
+}
+
+/* USER CODE BEGIN Header_gyro_acce */
+/**
+* @brief Function implementing the Gyro thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_gyro_acce */
+void gyro_acce(void *argument)
+{
+  /* USER CODE BEGIN gyro_acce */
+  /* Infinite loop */
+  // Set up
+	// read who am i (verify)
+  uint8_t reg_val;
+  while(reg_val != BO_WHO_AM_I)
+  {
+		HAL_I2C_Mem_Read(&hi2c1, IMU_I2C_ADDRESS, B0_WHO_AM_I, 1, &reg_val, 1, 0xFFFF);
+	    osDelay(1);
+  }
+
+  // set up (reset)
+  HAL_I2C_Mem_Write(&hi2c1, IMU_I2C_ADDRESS, B0_PWR_MGMT_1,1, &reg_val, 1, 0xFFFF);
+  osDelay(100);
+  // wake up
+  HAL_I2C_Mem_Read(&hi2c1, IMU_I2C_ADDRESS, B0_PWR_MGMT_1, 1, &reg_val, 1, 0xFFFF);
+
+  // set sample mode
+
+
+  // set accel settings
+
+  // set gyro settings
+
+  // Main loop
+  for(;;)
+  {
+  }
+  /* USER CODE END gyro_acce */
 }
 
 /**
