@@ -189,25 +189,25 @@ class ShortestPath:
 
             # TODO: Explore neighboring points if curr waypoint can't be reached
 
-            # possibilites = [end[:] for _ in range(5)]
-            # center, right, left, up, down = possibilites
-            # up[0] -= 1
-            # down[0] += 1
-            # left[1] -= 1
-            # right[1] += 1
-            # for p in possibilites:
-            #     if not maze.robotPosIsValid(p):
-            #         continue
-            #     end = p
-            #     print(start, end)
-            #     path = ShortestPath.astar(maze, start, end)
-            #     print(path)
-            #     if path is not None:
-            #         break
+            possibilites = [end[:] for _ in range(5)]
+            center, right, left, up, down = possibilites
+            up[0] -= 1
+            down[0] += 1
+            left[1] -= 1
+            right[1] += 1
+            for p in possibilites:
+                if not maze.robotPosIsValid(p):
+                    continue
+                end = p
+                print("Finding path from {} to {}".format(start, end))
+                path = ShortestPath.astar(maze, start, end)
+                print("Path found: ", path)
+                if path is not None:
+                    break
 
-            print("Finding path from {} to {}".format(start, end))
-            path = ShortestPath.astar(maze, start, end)
-            print("Path found: ", path)    
+            # print("Finding path from {} to {}".format(start, end))
+            # path = ShortestPath.astar(maze, start, end)
+            # print("Path found: ", path)    
 
             if path is None:
                 continue

@@ -9,7 +9,7 @@ from shortest_path import *
 def main(obstacles = None):
  
     if obstacles is None:
-        obstacles = [[9, 11, 'S'], [5, 17, 'W'], [0, 4, 'S'], [17, 16, 'N']]
+        obstacles = [[9, 11, 'S'], [5, 17, 'W'], [0, 4, 'S'], [17, 16, 'N'], [6, 3, 'N']]
     
     print("Obstacle List: ", obstacles)
 
