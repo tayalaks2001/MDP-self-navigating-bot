@@ -34,7 +34,6 @@ class ShortestPath:
     def getChildNode(curr_node, move):
         curr_pos = curr_node.position
         new_pos = curr_pos[:]
-        turning_dist = math.ceil(float(turning_radius)/grid_cell_size)
         if (move == 'F'):
             if (curr_pos[2] == NORTH):
                 new_pos[0] -= 1
@@ -72,13 +71,13 @@ class ShortestPath:
     def isTurnValid(maze, curr_pos, move):
         xi,yi,dir = curr_pos
         if ((dir==NORTH and move=='L') or (dir==WEST and move=='R')):
-            xn, yn = xi-1, yi-1
+            xn, yn = xi-turning_grids_moved, yi-turning_grids_moved
         elif ((dir==WEST and move=='L') or (dir==SOUTH and move=='R')):
-            xn, yn = xi+1, yi-1
+            xn, yn = xi+turning_grids_moved, yi-turning_grids_moved
         elif ((dir==SOUTH and move=='L') or (dir==EAST and move=='R')):
-            xn, yn = xi+1, yi+1
+            xn, yn = xi+turning_grids_moved, yi+turning_grids_moved
         elif ((dir==EAST and move=='L') or (dir==NORTH and move=='R')):
-            xn, yn = xi-1, yi+1
+            xn, yn = xi-turning_grids_moved, yi+turning_grids_moved
         
         for x in range(min(xi,xn),max(xi,xn)+1):
             for y in range(min(yi,yn),max(yi,yn)+1):

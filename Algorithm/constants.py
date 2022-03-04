@@ -19,7 +19,11 @@ grid_cell_size = 10
 # robot specifications
 car_width = 30
 car_height = 30
-turning_radius = 25
+
+turning_dist = 30
+
+
+
 
 # obstacles
 num_obstacles = 5
