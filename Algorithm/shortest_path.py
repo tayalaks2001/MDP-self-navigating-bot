@@ -201,14 +201,16 @@ class ShortestPath:
         #     end = p
         #     print("Finding path from {} to {}".format(start, end))
         #     path = ShortestPath.astar(maze, start, end)
-        #     print("Path found: ", path)
         #     if path is not None:
         #         break
 
         print("Finding path from {} to {}".format(start, end))
         path = ShortestPath.astar(maze, start, end)
-        if path is not None:
-            path = ShortestPath.processOutput(path)
+        if path is None:
+            print("No path found!")
+            return None
+
+        path = ShortestPath.processOutput(path)
         print("Path found: ", path)    
         
         return path
