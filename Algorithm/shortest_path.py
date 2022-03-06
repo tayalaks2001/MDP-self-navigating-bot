@@ -106,12 +106,10 @@ class ShortestPath:
         # Loop until you find the end
         while len(open_list) > 0:
 
-            # Get the current node
+            # Get the current node, pop current off open list
             current_node = heapq.heappop(open_list)
 
-            # Pop current off open list, add to closed list
-            # open_list.pop(current_index)
-            # closed_list.append(current_node)
+            # Add to closed list
             closed_list.add(tuple(current_node.position))
 
             # Found the goal
@@ -169,86 +167,85 @@ class ShortestPath:
                 heapq.heappush(open_list, child)
 
     @staticmethod
-    def main(obstacles):
+    def getVisitOrder(obstacles):
+        maze = Maze()
+        maze.setObstacles(obstacles)
+        waypoints_dist = maze.getDistBetweenWaypoints()
+        fp = FastestPath()
+        visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
+        visit_order = [i-1 for i in visit_order[1:]]
+        
+        return visit_order
+
+    @staticmethod
+    def findShortestPath(start, obstacles, end):
         maze = Maze()
         maze.setObstacles(obstacles)
         waypoints = maze.getWaypoints()
-        waypoints_dist = maze.getDistBetweenWaypoints()
 
         if ([float("-inf") for _ in range(3)] in waypoints):
             print("The images for these obstacles can not be scanned!")
             return None
 
-        fp = FastestPath()
-        visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
-        final_path = []
+        # TODO: Explore neighboring points if curr waypoint can't be reached
 
-        start = start_pos  
-        for i in visit_order[1:]:
-            end = waypoints[i-1]
+        # possibilites = [end[:] for _ in range(5)]
+        # center, right, left, up, down = possibilites
+        # up[0] -= 1
+        # down[0] += 1
+        # left[1] -= 1
+        # right[1] += 1
+        # for p in possibilites:
+        #     if not maze.robotPosIsValid(p):
+        #         continue
+        #     end = p
+        #     print("Finding path from {} to {}".format(start, end))
+        #     path = ShortestPath.astar(maze, start, end)
+        #     print("Path found: ", path)
+        #     if path is not None:
+        #         break
 
-            # TODO: Explore neighboring points if curr waypoint can't be reached
-
-            possibilites = [end[:] for _ in range(5)]
-            center, right, left, up, down = possibilites
-            up[0] -= 1
-            down[0] += 1
-            left[1] -= 1
-            right[1] += 1
-            for p in possibilites:
-                if not maze.robotPosIsValid(p):
-                    continue
-                end = p
-                print("Finding path from {} to {}".format(start, end))
-                path = ShortestPath.astar(maze, start, end)
-                print("Path found: ", path)
-                if path is not None:
-                    break
-
-            # print("Finding path from {} to {}".format(start, end))
-            # path = ShortestPath.astar(maze, start, end)
-            # print("Path found: ", path)    
-
-            if path is None:
-                continue
-
-            final_path.append(path)
-            start = end
+        print("Finding path from {} to {}".format(start, end))
+        path = ShortestPath.astar(maze, start, end)
+        if path is not None:
+            path = ShortestPath.processOutput(path)
+        print("Path found: ", path)    
         
-        return final_path
+        return path
+
 
     @staticmethod
-    def processOutput(path):
+    def processOutput(p):
 
-        new_path = []
-        for p in path:
-            curr_move = p[0]
-            count = 1
-            new_p = []
+        curr_move = p[0]
+        count = 1
+        new_p = []
 
-            for move in p[1:]:
-                if move == curr_move:
-                    count += 1
-                else:
-                    new_p.append(curr_move)
-                    new_p.append(str(count))
-                    curr_move = move
-                    count = 1
-            
-            new_p.append(curr_move)
-            new_p.append(str(count))
-
-            new_path.append(new_p)
+        for move in p[1:]:
+            if move == curr_move:
+                count += 1
+            else:
+                new_p.append(curr_move)
+                new_p.append(str(count))
+                curr_move = move
+                count = 1
         
-        return new_path
+        new_p.append(curr_move)
+        new_p.append(str(count))
+        
+        return new_p
+    
+    # @staticmethod
+    # def main(start_pos, obstacles):
+    #     if obstacles is None:
+    #         obstacles = [[9, 11, 'S'], [5, 17, 'W'], [0, 4, 'S'], [17, 16, 'N'], [6, 3, 'N']]
+        
+    #     print("Obstacle List: ", obstacles)
 
+    #     visit_order, path = ShortestPath.findShortestPath(start_pos, obstacles)
+    #     if (path is None or len(path) == 0):
+    #         print("No path found!")
+    #         return None
 
-if __name__ == '__main__':
-    maze = get_random_maze_with_obstacles()
-    obstacles = maze.getObstacles()
-    print(obstacles)
-    path = ShortestPath.main(obstacles)
-    if (len(path) == 0):
-        print("No path found!")
-    else:
-        print(ShortestPath.processOutput(path))
+    #     path = ShortestPath.processOutput(path)
+    #     return visit_order, path
