@@ -227,12 +227,12 @@ class ShortestPath:
             if move == curr_move:
                 count += 1
             else:
-                new_p.append(curr_move)
+                new_p.append(curr_move.lower())
                 new_p.append(str(count))
                 curr_move = move
                 count = 1
         
-        new_p.append(curr_move)
+        new_p.append(curr_move.lower())
         new_p.append(str(count))
         
         return new_p
