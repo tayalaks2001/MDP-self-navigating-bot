@@ -6,7 +6,7 @@ num_rows = int(maze_height/grid_cell_size)
 num_cols = int(maze_width/grid_cell_size)
 
 # start pos
-start_pos = [num_rows-2, 1, NORTH]
+# start_pos = [num_rows-2, 1, NORTH]
 
 # robot movement specifications
 turning_grids_moved = math.ceil(turning_dist/grid_cell_size)
