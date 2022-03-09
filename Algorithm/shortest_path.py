@@ -239,8 +239,14 @@ class ShortestPath:
             if move == curr_move:
                 count += 1
             else:
-                new_p.append(curr_move.lower())
-                new_p.append(str(count))
+                curr_move = curr_move.lower()
+                if curr_move == 'f' or curr_move == 'b':
+                    new_p.append(curr_move)
+                    new_p.append(str(count))
+                else:
+                    for _ in range(count):
+                        new_p.append(curr_move)
+                        new_p.append('1')
                 curr_move = move
                 count = 1
         
