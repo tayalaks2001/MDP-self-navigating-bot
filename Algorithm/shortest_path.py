@@ -96,6 +96,16 @@ class ShortestPath:
         end_node = Node(None, None, end)
         end_node.g = end_node.h = end_node.f = 0
 
+        # list of positions next to obstacles
+        next_to_obst = []
+        for obstacle in maze.getObstacles():
+            x,y,dir = obstacle
+            obst_neighbors = [[-2,0],[2,0],[0,-2],[0,2]]
+            for neighbor in obst_neighbors:
+                temp_pos = [x+neighbor[0], y+neighbor[1]]
+                next_to_obst.append(temp_pos)
+        # print("next to obst: ", next_to_obst)
+
         # Initialize both open and closed list
         open_list = []
         closed_list = set()
@@ -136,6 +146,10 @@ class ShortestPath:
                 # Make sure within range and valid
                 if not ShortestPath.isMoveValid(maze,current_node.position,node_position,move):
                     continue
+                
+                # Increase cost of nodes next to obstacles
+                if node_position[:-1] in next_to_obst:
+                    continue
 
                 # Append
                 children.append(child)
@@ -171,7 +185,6 @@ class ShortestPath:
         maze = Maze()
         maze.setObstacles(obstacles)
         waypoints_dist = maze.getDistBetweenWaypoints()
-        print(waypoints_dist)
         fp = FastestPath()
         visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
         visit_order = [i-1 for i in visit_order[1:]]
@@ -204,7 +217,6 @@ class ShortestPath:
         #     if path is not None:
         #         break
 
-        print("Finding path from {} to {}".format(start, end))
         path = ShortestPath.astar(maze, start, end)
         if path is None:
             print("No path found!")

@@ -7,7 +7,7 @@ import math
 
 # Below values defined according to android coord system i.e. (1,1) at bottom left of grid
 def_start_pos = [2,2,NORTH]
-test_obstacles = [[1,9,'S'],[7, 16, 'S'], [8, 1, 'N']]
+test_obstacles = [[8,7,'E'], [14,11,'S'],[2,18,'S']]
 # 18,1,n
 # 18,9,s, 7,16,s, 8,1,n
 class Main:
@@ -93,7 +93,7 @@ class Main:
         pos = [int(robot_x_loc), int(robot_y_loc), expected_pos[2]]
         maze = Maze()
         maze.setObstacles(obstacles)
-        if not maze.posIsValid(pos):
+        if not maze.robotPosIsValid(pos):
             return expected_pos
 
         return pos
@@ -126,6 +126,7 @@ class Main:
         
         while path is None and self.visited < len(self.visit_order):
             target = self.waypoints[self.visit_order[self.visited]]
+            print("Finding path from {} to {}".format(Main.processAlgoCoords(self.curr_pos), Main.processAlgoCoords(target)))
             path = ShortestPath.findShortestPath(self.curr_pos, self.obstacles, target)
             self.visited += 1
 
