@@ -93,10 +93,10 @@ class Main:
 
 
     def getTarget(self):
-        if self.visited >= len(self.visit_order) or self.visited < 0:
+        if self.visited > len(self.visit_order) or self.visited <= 0:
             return None
         
-        target = Main.processAlgoCoords(self.obstacles[self.visit_order[self.visited]])
+        target = Main.processAlgoCoords(self.obstacles[self.visit_order[self.visited-1]])
         return target
 
     
