@@ -6,9 +6,9 @@ from shortest_path import *
 
 # Below values defined according to android coord system i.e. (1,1) at bottom left of grid
 def_start_pos = [2,2,NORTH]
-test_obstacles = [[12, 11, 'S'], [18, 15, 'W'], [5, 20, 'S'], [17, 3, 'N'], [4, 14, 'N']]
-
-
+test_obstacles = [[1,9,'S'],[7, 16, 'S'], [8, 1, 'N']]
+# 18,1,n
+# 18,9,s, 7,16,s, 8,1,n
 class Main:
 
     def __init__(self, start_pos = def_start_pos, obstacles = test_obstacles, dist_from_obst = float("inf"), angle_of_obst = float("inf")):
@@ -17,6 +17,7 @@ class Main:
         self.dist_from_obst = dist_from_obst
         self.angle_of_obst = angle_of_obst
         self.visit_order = ShortestPath.getVisitOrder(self.obstacles)
+        print("visit order in main: ", self.visit_order)
         self.path = []
         self.visited = 0
         maze = Maze()
@@ -67,12 +68,12 @@ class Main:
 
     
     @staticmethod
-    def getActualPos(obst_pos, expected_pos, robot_reference_distance, robot_reference_angle):
+    def getActualPos(obst_pos, expected_pos, robot_reference_distance: float, robot_reference_angle:float):
         
         if (robot_reference_distance == float("inf") or robot_reference_angle == float("inf")):
             return expected_pos
         
-        robot_reference_angle -= 45
+        robot_reference_angle -= float(45)
         obs_x_loc, obs_y_loc, obs_dir = obst_pos
         # TODO: Update w actual pos logic
         if obs_dir == "S":
@@ -88,7 +89,7 @@ class Main:
             robot_x_loc = float(obs_x_loc) + 1 + round(float(robot_reference_distance/10)*math.cos(math.radians(float(robot_reference_angle))))
             robot_y_loc = float(obs_y_loc) + round(float(robot_reference_distance/10)*math.sin(math.radians(float(robot_reference_angle))))
         
-        return [robot_x_loc, robot_y_loc, expected_pos[2]]
+        return [int(robot_x_loc), int(robot_y_loc), expected_pos[2]]
 
 
     def getTarget(self):
@@ -99,7 +100,7 @@ class Main:
         return target
 
     
-    def getPath(self, dist_from_obst = float("inf"), angle_from_obst = float("inf")):
+    def getPath(self, dist_from_obst:float = float("inf"), angle_from_obst:float = float("inf")):
         
         if self.visited >= len(self.visit_order):
             print("All obstacles already reached!")

@@ -171,10 +171,11 @@ class ShortestPath:
         maze = Maze()
         maze.setObstacles(obstacles)
         waypoints_dist = maze.getDistBetweenWaypoints()
+        print(waypoints_dist)
         fp = FastestPath()
         visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
         visit_order = [i-1 for i in visit_order[1:]]
-        
+        print("visit order in shortest path: ", visit_order)
         return visit_order
 
     @staticmethod
@@ -183,8 +184,8 @@ class ShortestPath:
         maze.setObstacles(obstacles)
         waypoints = maze.getWaypoints()
 
-        if ([float("-inf") for _ in range(3)] in waypoints):
-            print("The images for these obstacles can not be scanned!")
+        if (float("-inf") in end or float("-inf") in end):
+            print("The image for this obstacle can not be scanned!")
             return None
 
         # TODO: Explore neighboring points if curr waypoint can't be reached

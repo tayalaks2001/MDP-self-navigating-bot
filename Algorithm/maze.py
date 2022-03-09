@@ -1,3 +1,6 @@
+from cmath import nan
+
+from numpy import NaN
 from constants import *
 from utils import *
 import logging
@@ -58,8 +61,7 @@ class Maze:
                 fin_dir = EAST
 
             if fin_x>=num_cols-1 or fin_x<=0 or fin_y>=num_rows-1 or fin_y<=0:
-                self.waypoints = [[float("-inf") for _ in range(3)] for _ in range(len(self.obstacles))]
-                return
+                fin_x,fin_y = float("-inf"), float("-inf")
             
             waypoints.append([fin_x,fin_y,fin_dir])
 
@@ -85,8 +87,12 @@ class Maze:
         for i in range(len(wayp)):
             for j in range(i, len(wayp)):
                 dist[i][j] = abs(wayp[i][0]-wayp[j][0]) + abs(wayp[i][1]-wayp[j][1])
+                # waypoint out of range, assign large dist value so gets appended to last of visit order
+                if dist[i][j] == float("inf") or dist[i][j] == NaN:
+                    dist[i][j] = 1000
+                
                 dist[j][i] = dist[i][j]
-
+        
         return dist
 
     
