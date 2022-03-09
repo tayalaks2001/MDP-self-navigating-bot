@@ -175,7 +175,6 @@ class ShortestPath:
         fp = FastestPath()
         visit_order = fp.get_order_of_visit(waypoints_dist, len(maze.getObstacles())+1)
         visit_order = [i-1 for i in visit_order[1:]]
-        print("visit order in shortest path: ", visit_order)
         return visit_order
 
     @staticmethod

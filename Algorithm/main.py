@@ -2,6 +2,7 @@ from maze import Maze
 from constants import *
 from utils import *
 from shortest_path import *
+import math
 
 
 # Below values defined according to android coord system i.e. (1,1) at bottom left of grid
@@ -17,7 +18,6 @@ class Main:
         self.dist_from_obst = dist_from_obst
         self.angle_of_obst = angle_of_obst
         self.visit_order = ShortestPath.getVisitOrder(self.obstacles)
-        print("visit order in main: ", self.visit_order)
         self.path = []
         self.visited = 0
         maze = Maze()
