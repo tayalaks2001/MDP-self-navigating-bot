@@ -2508,18 +2508,7 @@ void indoor_fakePID()
 
 void outdoor_fakePID()
 {
-//	if(gyro[2] > 50)
-//	{
-//		wheels_right(8);
-//		osDelay(80);
-//		wheels_straight();
-//	}
-//	else if (gyro[2] < -50)
-//	{
-//		wheels_left(5);
-//		osDelay(80);
-//		wheels_straight();
-//	}
+
 	int expected;
 	expected = 1800;
 
@@ -2527,7 +2516,7 @@ void outdoor_fakePID()
 	{
 		if(Ldiff > expected)
 		{
-			wheels_left(4);
+			wheels_left(5);
 			pwmL = pwmL - 5;
 		}
 		else if(Ldiff < expected)
@@ -2544,7 +2533,7 @@ void outdoor_fakePID()
 		}
 		else if(Rdiff < expected)
 		{
-			wheels_left(4);
+			wheels_left(5);
 			pwmR = pwmR + 5;
 
 		}
@@ -2565,7 +2554,7 @@ void outdoor_fakePID()
 
 		if(Rdiff > expected)
 		{
-			wheels_left(4);
+			wheels_left(5);
 			pwmR = pwmR - 5;
 		}
 		else if(Rdiff < expected)
