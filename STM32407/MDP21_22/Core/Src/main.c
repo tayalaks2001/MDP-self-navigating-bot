@@ -28,6 +28,122 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+/* define ICM-20948 Device I2C address*/
+#define I2C_ADD_ICM20948            0xD0
+#define I2C_ADD_ICM20948_AK09916    0x0C
+#define I2C_ADD_ICM20948_AK09916_READ  0x80
+#define I2C_ADD_ICM20948_AK09916_WRITE 0x00
+/* define ICM-20948 Register */
+/* user bank 0 register */
+#define REG_ADD_WIA             0x00
+#define REG_VAL_WIA             0xEA
+#define REG_ADD_USER_CTRL       0x03
+#define REG_VAL_BIT_DMP_EN          0x80
+#define REG_VAL_BIT_FIFO_EN         0x40
+#define REG_VAL_BIT_I2C_MST_EN      0x20
+#define REG_VAL_BIT_I2C_IF_DIS      0x10
+#define REG_VAL_BIT_DMP_RST         0x08
+#define REG_VAL_BIT_DIAMOND_DMP_RST 0x04
+#define REG_ADD_PWR_MIGMT_1     0x06
+#define REG_VAL_ALL_RGE_RESET   0x01
+#define REG_VAL_RUN_MODE        0x01    //Non low-power mode
+#define REG_ADD_LP_CONFIG       0x05
+#define REG_ADD_PWR_MGMT_1      0x06
+#define REG_ADD_PWR_MGMT_2      0x07
+#define REG_ADD_ACCEL_XOUT_H    0x2D
+#define REG_ADD_ACCEL_XOUT_L    0x2E
+#define REG_ADD_ACCEL_YOUT_H    0x2F
+#define REG_ADD_ACCEL_YOUT_L    0x30
+#define REG_ADD_ACCEL_ZOUT_H    0x31
+#define REG_ADD_ACCEL_ZOUT_L    0x32
+#define REG_ADD_GYRO_XOUT_H     0x33
+#define REG_ADD_GYRO_XOUT_L     0x34
+#define REG_ADD_GYRO_YOUT_H     0x35
+#define REG_ADD_GYRO_YOUT_L     0x36
+#define REG_ADD_GYRO_ZOUT_H     0x37
+#define REG_ADD_GYRO_ZOUT_L     0x38
+#define REG_ADD_EXT_SENS_DATA_00 0x3B
+#define REG_ADD_REG_BANK_SEL    0x7F
+#define REG_VAL_REG_BANK_0  0x00
+#define REG_VAL_REG_BANK_1  0x10
+#define REG_VAL_REG_BANK_2  0x20
+#define REG_VAL_REG_BANK_3  0x30
+
+/* user bank 1 register */
+/* user bank 2 register */
+#define REG_ADD_GYRO_SMPLRT_DIV 0x00
+#define REG_ADD_GYRO_CONFIG_1   0x01
+#define REG_VAL_BIT_GYRO_DLPCFG_2   0x10 /* bit[5:3] */
+#define REG_VAL_BIT_GYRO_DLPCFG_4   0x20 /* bit[5:3] */
+#define REG_VAL_BIT_GYRO_DLPCFG_6   0x30 /* bit[5:3] */
+#define REG_VAL_BIT_GYRO_FS_250DPS  0x00 /* bit[2:1] */
+#define REG_VAL_BIT_GYRO_FS_500DPS  0x02 /* bit[2:1] */
+#define REG_VAL_BIT_GYRO_FS_1000DPS 0x04 /* bit[2:1] */
+#define REG_VAL_BIT_GYRO_FS_2000DPS 0x06 /* bit[2:1] */
+#define REG_VAL_BIT_GYRO_DLPF       0x01 /* bit[0]   */
+#define REG_ADD_ACCEL_SMPLRT_DIV_2  0x11
+#define REG_ADD_ACCEL_CONFIG        0x14
+#define REG_VAL_BIT_ACCEL_DLPCFG_2  0x10 /* bit[5:3] */
+#define REG_VAL_BIT_ACCEL_DLPCFG_4  0x20 /* bit[5:3] */
+#define REG_VAL_BIT_ACCEL_DLPCFG_6  0x30 /* bit[5:3] */
+#define REG_VAL_BIT_ACCEL_FS_2g     0x00 /* bit[2:1] */
+#define REG_VAL_BIT_ACCEL_FS_4g     0x02 /* bit[2:1] */
+#define REG_VAL_BIT_ACCEL_FS_8g     0x04 /* bit[2:1] */
+#define REG_VAL_BIT_ACCEL_FS_16g    0x06 /* bit[2:1] */
+#define REG_VAL_BIT_ACCEL_DLPF      0x01 /* bit[0]   */
+
+/* user bank 3 register */
+#define REG_ADD_I2C_SLV0_ADDR   0x03
+#define REG_ADD_I2C_SLV0_REG    0x04
+#define REG_ADD_I2C_SLV0_CTRL   0x05
+#define REG_VAL_BIT_SLV0_EN     0x80
+#define REG_VAL_BIT_MASK_LEN    0x07
+#define REG_ADD_I2C_SLV0_DO     0x06
+#define REG_ADD_I2C_SLV1_ADDR   0x07
+#define REG_ADD_I2C_SLV1_REG    0x08
+#define REG_ADD_I2C_SLV1_CTRL   0x09
+#define REG_ADD_I2C_SLV1_DO     0x0A
+
+/* define ICM-20948 Register  end */
+
+/* define ICM-20948 MAG Register  */
+#define REG_ADD_MAG_WIA1    0x00
+#define REG_VAL_MAG_WIA1    0x48
+#define REG_ADD_MAG_WIA2    0x01
+#define REG_VAL_MAG_WIA2    0x09
+#define REG_ADD_MAG_ST2     0x10
+#define REG_ADD_MAG_DATA    0x11
+#define REG_ADD_MAG_CNTL2   0x31
+#define REG_VAL_MAG_MODE_PD     0x00
+#define REG_VAL_MAG_MODE_SM     0x01
+#define REG_VAL_MAG_MODE_10HZ   0x02
+#define REG_VAL_MAG_MODE_20HZ   0x04
+#define REG_VAL_MAG_MODE_50HZ   0x05
+#define REG_VAL_MAG_MODE_100HZ  0x08
+#define REG_VAL_MAG_MODE_ST     0x10
+/* define ICM-20948 MAG Register  end */
+
+typedef struct icm20948_st_sensor_data_tag
+{
+	uint16_t s16X;
+	uint16_t s16Y;
+	uint16_t s16Z;
+}ICM20948_ST_SENSOR_DATA;
+
+typedef struct icm20948_st_avg_data_tag
+{
+	uint8_t u8Index;
+	uint16_t s16AvgBuffer[8];
+}ICM20948_ST_AVG_DATA;
+
+typedef struct imu_st_sensor_data_tag
+{
+	uint16_t s16X;
+	uint16_t s16Y;
+	uint16_t s16Z;
+}IMU_ST_SENSOR_DATA;
+#define MAG_DATA_LEN    6
+#define CONTROL_DELAY		1000
 
 /* USER CODE END PTD */
 
@@ -92,6 +208,13 @@ const osThreadAttr_t motortask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for ICM_Task */
+osThreadId_t ICM_TaskHandle;
+const osThreadAttr_t ICM_Task_attributes = {
+  .name = "ICM_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -114,12 +237,29 @@ void show(void *argument);
 void encoder_task(void *argument);
 void ultra_sonic_task(void *argument);
 void Motor_Task(void *argument);
+void ICM_20948_Task(void *argument);
 
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* ICM20948 Variables --------------------------------------------------------*/
+uint8_t icmData = 0x1;
+uint8_t icmTempMsg[16] = {};
+ICM20948_ST_SENSOR_DATA gstGyroOffset ={0,0,0};
+IMU_ST_SENSOR_DATA gstMagOffset = {0,0,0};
+int16_t TestmagnBuff[9]={0};
+int16_t magn[3];
+int16_t Deviation_gyro[3],Original_gyro[3];
+int16_t s16Gyro[3], s16Accel[3], s16Magn[3];
+int16_t gyro[3], accel[3],magnet[3];
+uint16_t Deviation_Count = 0;
+uint16_t expected_gyro =0;
+int gyrosum = 0;
+
+
 /*UART Variables*/
  uint8_t buffer_byte;
  uint8_t aRxBuffer[5] = {0};
@@ -134,6 +274,9 @@ uint16_t pwmL = 0;
 uint16_t pwmR = 0;
 uint16_t time_taken = 0;
 uint16_t distance = 0;
+
+uint8_t direction = 1;
+
 
 const float hallPerMM = 1.62;
 int lCounter = 0;
@@ -173,7 +316,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  //ICMInit();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -190,7 +333,9 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM8_Init();
   MX_TIM1_Init();
+// MX_USART3_UART_Init();
   MX_TIM3_Init();
+ // MX_DMA_Init();
   MX_TIM4_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
@@ -239,6 +384,9 @@ int main(void)
 
   /* creation of motortask */
   motortaskHandle = osThreadNew(Motor_Task, NULL, &motortask_attributes);
+
+  /* creation of ICM_Task */
+  ICM_TaskHandle = osThreadNew(ICM_20948_Task, NULL, &ICM_Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -405,7 +553,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 400000;
+  hi2c1.Init.ClockSpeed = 100000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -846,6 +994,299 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void ICMWriteOneByte(uint8_t RegAddr, uint8_t Data)
+{
+	HAL_I2C_Mem_Write(&hi2c1, I2C_ADD_ICM20948, RegAddr, I2C_MEMADD_SIZE_8BIT, &Data, 1, 0xffff);
+}
+
+uint8_t ICMReadOneByte(uint8_t RegAddr)
+{
+	uint8_t TempVal = 0;
+	HAL_I2C_Mem_Read(&hi2c1, I2C_ADD_ICM20948, RegAddr, I2C_MEMADD_SIZE_8BIT, &TempVal, 1, 0xffff);
+	return TempVal;
+}
+
+void ICMReadSecondary(uint8_t u8I2CAddr, uint8_t u8RegAddr, uint8_t u8Len, uint8_t *pu8data)
+{
+    uint8_t i;
+    uint8_t u8Temp;
+
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL,  REG_VAL_REG_BANK_3); //swtich bank3
+    ICMWriteOneByte(REG_ADD_I2C_SLV0_ADDR, u8I2CAddr);
+    ICMWriteOneByte(REG_ADD_I2C_SLV0_REG,  u8RegAddr);
+    ICMWriteOneByte(REG_ADD_I2C_SLV0_CTRL, REG_VAL_BIT_SLV0_EN|u8Len);
+
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0); //swtich bank0
+
+    u8Temp = ICMReadOneByte(REG_ADD_USER_CTRL);
+    u8Temp |= REG_VAL_BIT_I2C_MST_EN;
+    ICMWriteOneByte(REG_ADD_USER_CTRL, u8Temp);
+    osDelay(5);
+    u8Temp &= ~REG_VAL_BIT_I2C_MST_EN;
+    ICMWriteOneByte(REG_ADD_USER_CTRL, u8Temp);
+
+    for(i=0; i<u8Len; i++)
+    {
+        *(pu8data+i) = ICMReadOneByte(REG_ADD_EXT_SENS_DATA_00+i);
+
+    }
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_3); //swtich bank3
+
+    u8Temp = ICMReadOneByte(REG_ADD_I2C_SLV0_CTRL);
+    u8Temp &= ~((REG_VAL_BIT_I2C_MST_EN)&(REG_VAL_BIT_MASK_LEN));
+    ICMWriteOneByte(REG_ADD_I2C_SLV0_CTRL,  u8Temp);
+
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0); //swtich bank0
+
+}
+
+void ICMWriteSecondary(uint8_t u8I2CAddr, uint8_t u8RegAddr, uint8_t u8data)
+{
+    uint8_t u8Temp;
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL,  REG_VAL_REG_BANK_3); //swtich bank3
+    ICMWriteOneByte(REG_ADD_I2C_SLV1_ADDR, u8I2CAddr);
+    ICMWriteOneByte(REG_ADD_I2C_SLV1_REG,  u8RegAddr);
+    ICMWriteOneByte(REG_ADD_I2C_SLV1_DO,   u8data);
+    ICMWriteOneByte(REG_ADD_I2C_SLV1_CTRL, REG_VAL_BIT_SLV0_EN|1);
+
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0); //swtich bank0
+
+    u8Temp = ICMReadOneByte(REG_ADD_USER_CTRL);
+    u8Temp |= REG_VAL_BIT_I2C_MST_EN;
+    ICMWriteOneByte(REG_ADD_USER_CTRL, u8Temp);
+    osDelay(5);
+    u8Temp &= ~REG_VAL_BIT_I2C_MST_EN;
+    ICMWriteOneByte(REG_ADD_USER_CTRL, u8Temp);
+
+    ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_3); //swtich bank3
+
+    u8Temp = ICMReadOneByte(REG_ADD_I2C_SLV0_CTRL);
+    u8Temp &= ~((REG_VAL_BIT_I2C_MST_EN)&(REG_VAL_BIT_MASK_LEN));
+    ICMWriteOneByte(REG_ADD_I2C_SLV0_CTRL,  u8Temp);
+
+   ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0); //swtich bank0
+
+    return;
+}
+
+void ICMWhoIAm()
+{
+	uint8_t ICM_OK_Msg[8] = "ICM OK";
+	if (REG_VAL_WIA == ICMReadOneByte(REG_ADD_WIA))
+	{
+		OLED_ShowString(0,20,ICM_OK_Msg);
+	}
+}
+
+void ICMCalAvgValue(uint8_t *pIndex, int16_t *pAvgBuffer, int16_t InVal, int32_t *pOutVal)
+{
+	uint8_t i;
+
+	*(pAvgBuffer + ((*pIndex) ++)) = InVal;
+  	*pIndex &= 0x07;
+
+  	*pOutVal = 0;
+	for(i = 0; i < 8; i ++)
+  	{
+    	*pOutVal += *(pAvgBuffer + i);
+  	}
+  	*pOutVal >>= 3;
+}
+
+void ICMGyroRead(int16_t* ps16X, int16_t* ps16Y, int16_t* ps16Z)
+{
+    uint8_t u8Buf[6];
+    int16_t s16Buf[3] = {0};
+    uint8_t i;
+    int32_t s32OutBuf[3] = {0};
+    static ICM20948_ST_AVG_DATA sstAvgBuf[3];
+    static int16_t ss16c = 0;
+    ss16c++;
+
+    u8Buf[0] = ICMReadOneByte(REG_ADD_GYRO_XOUT_L);
+    u8Buf[1] = ICMReadOneByte(REG_ADD_GYRO_XOUT_H);
+    s16Buf[0] =	(u8Buf[1]<<8)|u8Buf[0];
+
+    u8Buf[0] = ICMReadOneByte(REG_ADD_GYRO_YOUT_L);
+    u8Buf[1] = ICMReadOneByte(REG_ADD_GYRO_YOUT_H);
+    s16Buf[1] =	(u8Buf[1]<<8)|u8Buf[0];
+
+    u8Buf[0] = ICMReadOneByte(REG_ADD_GYRO_ZOUT_L);
+    u8Buf[1] = ICMReadOneByte(REG_ADD_GYRO_ZOUT_H);
+    s16Buf[2] =	(u8Buf[1]<<8)|u8Buf[0];
+
+#if 1
+    for(i = 0; i < 3; i ++)
+    {
+        ICMCalAvgValue(&sstAvgBuf[i].u8Index, sstAvgBuf[i].s16AvgBuffer, s16Buf[i], s32OutBuf + i);
+    }
+    *ps16X = s32OutBuf[0] - gstGyroOffset.s16X;
+    *ps16Y = s32OutBuf[1] - gstGyroOffset.s16Y;
+    *ps16Z = s32OutBuf[2] - gstGyroOffset.s16Z;
+#else
+    *ps16X = s16Buf[0];
+    *ps16Y = s16Buf[1];
+    *ps16Z = s16Buf[2];
+#endif
+    return;
+}
+
+void ICMAccelRead(int16_t* ps16X, int16_t* ps16Y, int16_t* ps16Z)
+{
+   uint8_t u8Buf[2];
+   int16_t s16Buf[3] = {0};
+   uint8_t i;
+   int32_t s32OutBuf[3] = {0};
+   static ICM20948_ST_AVG_DATA sstAvgBuf[3];
+
+   u8Buf[0] = ICMReadOneByte(REG_ADD_ACCEL_XOUT_L);
+   u8Buf[1] = ICMReadOneByte(REG_ADD_ACCEL_XOUT_H);
+   s16Buf[0] = (u8Buf[1]<<8)|u8Buf[0];
+
+   u8Buf[0] = ICMReadOneByte(REG_ADD_ACCEL_YOUT_L);
+   u8Buf[1] = ICMReadOneByte(REG_ADD_ACCEL_YOUT_H);
+   s16Buf[1] = (u8Buf[1]<<8)|u8Buf[0];
+
+   u8Buf[0] = ICMReadOneByte(REG_ADD_ACCEL_ZOUT_L);
+   u8Buf[1] = ICMReadOneByte(REG_ADD_ACCEL_ZOUT_H);
+   s16Buf[2] = (u8Buf[1]<<8)|u8Buf[0];
+
+#if 1
+   for(i = 0; i < 3; i ++)
+   {
+       ICMCalAvgValue(&sstAvgBuf[i].u8Index, sstAvgBuf[i].s16AvgBuffer, s16Buf[i], s32OutBuf + i);
+   }
+   *ps16X = s32OutBuf[0];
+   *ps16Y = s32OutBuf[1];
+   *ps16Z = s32OutBuf[2];
+
+#else
+   *ps16X = s16Buf[0];
+   *ps16Y = s16Buf[1];
+   *ps16Z = s16Buf[2];
+#endif
+   return;
+
+}
+
+void ICMMagRead(int16_t* ps16X, int16_t* ps16Y, int16_t* ps16Z)
+{
+   uint8_t counter = 20;
+   uint8_t u8Data[MAG_DATA_LEN];
+   int16_t s16Buf[3] = {0};
+   uint8_t i;
+   int32_t s32OutBuf[3] = {0};
+   static ICM20948_ST_AVG_DATA sstAvgBuf[3];
+   while( counter>0 )
+   {
+       osDelay(10);
+       ICMReadSecondary(I2C_ADD_ICM20948_AK09916|I2C_ADD_ICM20948_AK09916_READ,
+                                   REG_ADD_MAG_ST2, 1, u8Data);
+
+       if ((u8Data[0] & 0x01) != 0)
+           break;
+
+       counter--;
+   }
+
+   if(counter != 0)
+   {
+       ICMReadSecondary( I2C_ADD_ICM20948_AK09916|I2C_ADD_ICM20948_AK09916_READ,
+                                   REG_ADD_MAG_DATA,
+                                   MAG_DATA_LEN,
+                                   u8Data);
+       s16Buf[0] = ((int16_t)u8Data[1]<<8) | u8Data[0];
+       s16Buf[1] = ((int16_t)u8Data[3]<<8) | u8Data[2];
+       s16Buf[2] = ((int16_t)u8Data[5]<<8) | u8Data[4];
+   }
+   else
+   {
+       printf("\r\n Mag is busy \r\n");
+   }
+#if 1
+   for(i = 0; i < 3; i ++)
+   {
+       ICMCalAvgValue(&sstAvgBuf[i].u8Index, sstAvgBuf[i].s16AvgBuffer, s16Buf[i], s32OutBuf + i);
+   }
+
+   *ps16X =  s32OutBuf[0];
+   *ps16Y = -s32OutBuf[1];
+   *ps16Z = -s32OutBuf[2];
+#else
+   *ps16X = s16Buf[0];
+   *ps16Y = -s16Buf[1];
+   *ps16Z = -s16Buf[2];
+#endif
+   return;
+}
+
+void ICMGyroOffset()
+{
+	uint8_t i;
+    int16_t	s16Gx = 0, s16Gy = 0, s16Gz = 0;
+	int32_t	s32TempGx = 0, s32TempGy = 0, s32TempGz = 0;
+    for(i = 0; i < 32; i ++)
+ 	{
+        ICMGyroRead(&s16Gx, &s16Gy, &s16Gz);
+        s32TempGx += s16Gx;
+		s32TempGy += s16Gy;
+		s32TempGz += s16Gz;
+        osDelay(10);
+    }
+    gstGyroOffset.s16X = s32TempGx >> 5;
+	gstGyroOffset.s16Y = s32TempGy >> 5;
+	gstGyroOffset.s16Z = s32TempGz >> 5;
+    return;
+}
+
+void MPU_Get_Gyroscope(void)
+{
+	ICMGyroRead(&gyro[0], &gyro[1], &gyro[2]);
+//	if(Deviation_Count==CONTROL_DELAY)
+//	{
+		//Save the raw data to update zero by clicking the user button
+		Original_gyro[0] = gyro[0];
+		Original_gyro[1] = gyro[1];
+		Original_gyro[2] = gyro[2];
+
+		//Removes zero drift data
+		gyro[0] = Original_gyro[0]-Deviation_gyro[0];
+		gyro[1] = Original_gyro[1]-Deviation_gyro[1];
+		gyro[2] = Original_gyro[2]-Deviation_gyro[2];
+//	}
+	return;
+}
+
+void ICMInit()
+{
+	/* user bank 0 register */
+	ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0);
+	ICMWriteOneByte(REG_ADD_PWR_MIGMT_1, REG_VAL_ALL_RGE_RESET);
+	osDelay(10);
+	ICMWriteOneByte(REG_ADD_PWR_MIGMT_1, REG_VAL_RUN_MODE);
+
+	/* user bank 2 register */
+
+	ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_2);
+
+	ICMWriteOneByte(REG_ADD_GYRO_SMPLRT_DIV, 0x07);
+	ICMWriteOneByte(REG_ADD_GYRO_CONFIG_1,REG_VAL_BIT_GYRO_DLPCFG_6 | REG_VAL_BIT_GYRO_FS_500DPS | REG_VAL_BIT_GYRO_DLPF);
+
+	ICMWriteOneByte(REG_ADD_ACCEL_SMPLRT_DIV_2,  0x07);
+	ICMWriteOneByte(REG_ADD_ACCEL_CONFIG,REG_VAL_BIT_ACCEL_DLPCFG_6 | REG_VAL_BIT_ACCEL_FS_2g | REG_VAL_BIT_ACCEL_DLPF);
+
+	/* user bank 0 register */
+	ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0);
+
+	osDelay(100);
+	/* offset */
+	ICMGyroOffset();
+
+	ICMWriteSecondary(I2C_ADD_ICM20948_AK09916|I2C_ADD_ICM20948_AK09916_WRITE,REG_ADD_MAG_CNTL2, REG_VAL_MAG_MODE_100HZ);
+}
+
+
+
 int e1_error = 0;
 int e2_error = 0;
 uint16_t target = 3000;
@@ -909,14 +1350,61 @@ void move_forward_indoor_dist(int distance_mm)
 	 * Equation for PWM 1500
 	 */
 
+	int targetdiff =  7.4436*distance_mm + 0.0087;
+	int encoderDiff = 0;
 
+	//ticks = 7.4436x + 0.0087
+	int L2 = 0;
 
-	int time_needed = 4*distance_mm + 2.2293;
-
-    uint32_t t_start = HAL_GetTick();
-    while(HAL_GetTick()-t_start<time_needed)
+	int L1 = __HAL_TIM_GET_COUNTER(&htim2);
+	if(L1 == 0 && direction == 1)
 	{
-		indoor_fakePID();
+		L1 = 65535;
+	}
+
+	uint8_t en_msg[10];
+
+//	int time_needed = 4*distance_mm + 2.2293;
+//    uint32_t t_start = HAL_GetTick();
+    while(encoderDiff < (targetdiff -300))
+	{
+    	L2 = __HAL_TIM_GET_COUNTER(&htim2);
+		if(direction == 1)
+		{
+			if(L2 == 0)
+			{
+				L2 = 65535;
+			}
+
+			if(L1 >= L2)
+			{
+				encoderDiff = L1-L2;
+			}
+			else
+			{
+				encoderDiff = (65535 -L2) + L1;
+			}
+		}
+
+		else
+		{
+			if(L2 == 65535)
+			{
+				L2 =0;
+			}
+			if(L2 >= L1)
+			{
+				encoderDiff = L2 - L1;
+			}
+			else
+			{
+				encoderDiff = (65535 - L1 ) + L2;
+			}
+
+		}
+		sprintf(en_msg,"diff: %d",encoderDiff);
+		OLED_ShowString(10,20, en_msg);
+		outdoor_fakePID();
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
 		osDelay(10);
@@ -927,55 +1415,9 @@ void move_forward_indoor_dist(int distance_mm)
 	osDelay(1);
 }
 
-void move_backward_indoor_dist(int distance_mm)
-{
-	pwmL = 1.03*1500;
-	pwmR = 1500;
-
-	wheels_straight();
-	osDelay(1);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-
-	//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-	osDelay(1);
-
-	/* First 10 cm is  390 ms */
-	/* Distance of 20 cm is 815 ms
-	 * Distance of 30 cm is 1210 ms
-	 * Distance of 50 cm is 1910 ms
-	 * Distance of 80 cm is 3200 ms
-	 * Distance of 100 cm is 4000ms
-	 * Equation for PWM 1500
-	 */
-
-
-
-	int time_needed = 4*distance_mm + 2.2293;
-
-    uint32_t t_start = HAL_GetTick();
-    while(HAL_GetTick()-t_start<time_needed)
-	{
-		indoor_fakePID();
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-		osDelay(10);
-		wheels_straight();
-		osDelay(10);
-	}
-	motor_stop();
-	osDelay(1);
-}
-/*---------------------------------------Week 9 Task(outdoor)of pwm 2000------------------------------------------------------*/
 void move_forward_outdoor_dist(int distance_mm)
 {
-	pwmL = 1.03*1500;
+	pwmL = 1500;
 	pwmR = 1500;
 
 	wheels_straight();
@@ -993,7 +1435,7 @@ void move_forward_outdoor_dist(int distance_mm)
 	osDelay(1);
 
 	/* First 10 cm is  390 ms */
-	/* Distance of 20 cm is 815 ms
+	/* Distance of 20 cm is 830 ms
 	 * Distance of 30 cm is 1210 ms
 	 * Distance of 50 cm is 1910 ms
 	 * Distance of 80 cm is 3200 ms
@@ -1002,12 +1444,60 @@ void move_forward_outdoor_dist(int distance_mm)
 	 */
 
 
+	int targetdiff =  7.4436*distance_mm + 0.0087;
+	int encoderDiff = 0;
 
-	int time_needed = 4.1*distance_mm + 20.2293;
+	//ticks = 7.4436x + 0.0087
+	int L2 = 0;
 
-    uint32_t t_start = HAL_GetTick();
-    while(HAL_GetTick()-t_start<time_needed)
+	int L1 = __HAL_TIM_GET_COUNTER(&htim2);
+	if(L1 == 0 && direction == 1)
 	{
+		L1 = 65535;
+	}
+
+	uint8_t en_msg[10];
+
+//	int time_needed = 4*distance_mm + 2.2293;
+//    uint32_t t_start = HAL_GetTick();
+    while(encoderDiff < (targetdiff -300))
+	{
+    	L2 = __HAL_TIM_GET_COUNTER(&htim2);
+		if(direction == 1)
+		{
+			if(L2 == 0)
+			{
+				L2 = 65535;
+			}
+
+			if(L1 >= L2)
+			{
+				encoderDiff = L1-L2;
+			}
+			else
+			{
+				encoderDiff = (65535 -L2) + L1;
+			}
+		}
+
+		else
+		{
+			if(L2 == 65535)
+			{
+				L2 =0;
+			}
+			if(L2 >= L1)
+			{
+				encoderDiff = L2 - L1;
+			}
+			else
+			{
+				encoderDiff = (65535 - L1 ) + L2;
+			}
+
+		}
+		sprintf(en_msg,"diff: %d",encoderDiff);
+		OLED_ShowString(10,20, en_msg);
 		outdoor_fakePID();
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
@@ -1019,9 +1509,9 @@ void move_forward_outdoor_dist(int distance_mm)
 	osDelay(1);
 }
 
-void move_backward_outdoor_dist(int distance_mm)
+void move_backward_indoor_dist(int distance_mm)
 {
-	pwmL = 1.0*1500;
+	pwmL = 1500;
 	pwmR = 1500;
 
 	wheels_straight();
@@ -1039,7 +1529,7 @@ void move_backward_outdoor_dist(int distance_mm)
 	osDelay(1);
 
 	/* First 10 cm is  390 ms */
-	/* Distance of 20 cm is 815 ms
+	/* Distance of 20 cm is 830 ms
 	 * Distance of 30 cm is 1210 ms
 	 * Distance of 50 cm is 1910 ms
 	 * Distance of 80 cm is 3200 ms
@@ -1048,12 +1538,155 @@ void move_backward_outdoor_dist(int distance_mm)
 	 */
 
 
+	int targetdiff =  7.4436*distance_mm + 0.0087;
+	int encoderDiff = 0;
 
-	int time_needed = 4.1*distance_mm + 20.2293;
+	//ticks = 7.4436x + 0.0087
+	int L2 = 0;
 
-    uint32_t t_start = HAL_GetTick();
-    while(HAL_GetTick()-t_start<time_needed)
+	int L1 = __HAL_TIM_GET_COUNTER(&htim2);
+	if(L1 == 0 && direction == 1)
 	{
+		L1 = 65535;
+	}
+
+	uint8_t en_msg[10];
+
+//	int time_needed = 4*distance_mm + 2.2293;
+//    uint32_t t_start = HAL_GetTick();
+    while(encoderDiff < (targetdiff -300))
+	{
+    	L2 = __HAL_TIM_GET_COUNTER(&htim2);
+		if(direction == 1)
+		{
+			if(L2 == 0)
+			{
+				L2 = 65535;
+			}
+
+			if(L1 >= L2)
+			{
+				encoderDiff = L1-L2;
+			}
+			else
+			{
+				encoderDiff = (65535 -L2) + L1;
+			}
+		}
+
+		else
+		{
+			if(L2 == 65535)
+			{
+				L2 =0;
+			}
+			if(L2 >= L1)
+			{
+				encoderDiff = L2 - L1;
+			}
+			else
+			{
+				encoderDiff = (65535 - L1 ) + L2;
+			}
+
+		}
+		sprintf(en_msg,"diff: %d",encoderDiff);
+		OLED_ShowString(10,20, en_msg);
+		indoor_fakePID();
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+		osDelay(10);
+		wheels_straight();
+		osDelay(10);
+	}
+	motor_stop();
+	osDelay(1);
+}
+/*---------------------------------------Week 9 Task(outdoor)of pwm 2000------------------------------------------------------*/
+
+void move_backward_outdoor_dist(int distance_mm)
+{
+	pwmL = 1500;
+	pwmR = 1500;
+
+	wheels_straight();
+	osDelay(1);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
+
+	//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+	osDelay(1);
+
+	/* First 10 cm is  390 ms */
+	/* Distance of 20 cm is 830 ms
+	 * Distance of 30 cm is 1210 ms
+	 * Distance of 50 cm is 1910 ms
+	 * Distance of 80 cm is 3200 ms
+	 * Distance of 100 cm is 3800ms
+	 * Equation for PWM 1500
+	 */
+
+
+	int targetdiff =  7.4436*distance_mm + 0.0087;
+	int encoderDiff = 0;
+
+	//ticks = 7.4436x + 0.0087
+	int L2 = 0;
+
+	int L1 = __HAL_TIM_GET_COUNTER(&htim2);
+	if(L1 == 0 && direction == 1)
+	{
+		L1 = 65535;
+	}
+
+	uint8_t en_msg[10];
+
+//	int time_needed = 4*distance_mm + 2.2293;
+//    uint32_t t_start = HAL_GetTick();
+    while(encoderDiff < (targetdiff -300))
+	{
+    	L2 = __HAL_TIM_GET_COUNTER(&htim2);
+		if(direction == 1)
+		{
+			if(L2 == 0)
+			{
+				L2 = 65535;
+			}
+
+			if(L1 >= L2)
+			{
+				encoderDiff = L1-L2;
+			}
+			else
+			{
+				encoderDiff = (65535 -L2) + L1;
+			}
+		}
+
+		else
+		{
+			if(L2 == 65535)
+			{
+				L2 =0;
+			}
+			if(L2 >= L1)
+			{
+				encoderDiff = L2 - L1;
+			}
+			else
+			{
+				encoderDiff = (65535 - L1 ) + L2;
+			}
+
+		}
+		sprintf(en_msg,"diff: %d",encoderDiff);
+		OLED_ShowString(10,20, en_msg);
 		outdoor_fakePID();
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
 		__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
@@ -1088,7 +1721,7 @@ void indoor_three_point_turnL()
 	osDelay(200);
 	move_indoor_forward_left(20, 700);
 	osDelay(200);
-	move_indoor_backward_right(50, 700);
+	move_indoor_backward_right(50,700);
 	osDelay(200);
 }
 
@@ -1102,9 +1735,10 @@ void outdoor_three_point_turnR()
 	osDelay(200);
 	move_outdoor_forward_right(80,550);
 	osDelay(200);
-	move_outdoor_backward_left(35, 590);
+	move_outdoor_backward_left(30, 580);
 	osDelay(200);
-	i++;
+	wheels_straight();
+	//i++;
 //	}
 }
 
@@ -1118,13 +1752,27 @@ void outdoor_three_point_turnL()
 	osDelay(200);
 	move_outdoor_forward_left(20, 700);
 	osDelay(200);
-	move_outdoor_backward_right(50, 700);
+	move_outdoor_backward_right(50, 690);
 	osDelay(200);
+	wheels_straight();
 //	i++;
 //	}
 }
 
-
+void random_path()
+{
+	move_forward_outdoor_dist(1000);
+	osDelay(200);
+	outdoor_three_point_turnR();
+	osDelay(200);
+	outdoor_three_point_turnL();
+	osDelay(200);
+	move_forward_outdoor_dist(1000);
+	osDelay(200);
+	outdoor_three_point_turnL();
+	osDelay(200);
+	move_forward_outdoor_dist(1000);
+}
 void move_indoor_forward_right(uint8_t angle, int time_ms)
 {
 	pwmL = 2000;
@@ -1155,36 +1803,6 @@ void move_indoor_forward_right(uint8_t angle, int time_ms)
 
 
 }
-
-void move_indoor_backward_left(uint8_t angle, int time_ms)
-{
-	pwmL = 1500;
-	pwmR = 2000;
-
-	wheels_straight();
-	osDelay(200);
-	wheels_left(angle);
-	osDelay(200);
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-
-			//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-
-
-
-    uint32_t t_start = HAL_GetTick();
-	while(HAL_GetTick()-t_start < time_ms ){
-		osDelay(1);
-	}
-	motor_stop();
-}
-
 
 void move_indoor_forward_left(uint8_t angle, int time_ms)
 {
@@ -1354,6 +1972,36 @@ void move_outdoor_backward_left(uint8_t angle, int time_ms)
 }
 /*-------------------------------------------------------------------------------------------------*/
 
+void move_indoor_backward_left(uint8_t angle, int time_ms)
+{
+	pwmL = 1500;
+	pwmR = 2000;
+
+	wheels_straight();
+	osDelay(200);
+	wheels_left(angle);
+	osDelay(200);
+	//LEFT WHEELS
+	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
+
+			//RIGHT WHEELS
+	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
+
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
+	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
+
+
+
+    uint32_t t_start = HAL_GetTick();
+	while(HAL_GetTick()-t_start < time_ms ){
+		osDelay(1);
+	}
+	motor_stop();
+}
+
+
 void move_90turnR()
 {
 	pwmL = 5000;
@@ -1380,6 +2028,7 @@ void move_90turnR()
 	{
 		osDelay(1);
 	}
+
 
 	wheels_straight();
 	osDelay(100);
@@ -1418,62 +2067,146 @@ void move_90turnL()
 
 void indoor_fakePID()
 {
+
 	int expected;
 	expected = 1800;
 
-	if(Ldiff > expected)
+	if(direction == 1)
 	{
-		wheels_left(3);
-		pwmL = pwmL - 5;
-	}
-	else if(Ldiff < expected)
-	{
-		wheels_right(5);
-		pwmL = pwmL + 5;
+		if(Ldiff > expected)
+		{
+			wheels_left(4);
+			pwmL = pwmL - 5;
+		}
+		else if(Ldiff < expected)
+		{
+			wheels_right(5);
+			pwmL = pwmL + 5;
 
-	}
+		}
 
-	if(Rdiff > expected)
-	{
-		wheels_right(4);
-		pwmR = pwmR - 5;
-	}
-	else if(Rdiff < expected)
-	{
-		wheels_left(3);
-		pwmR = pwmR + 5;
+		if(Rdiff > expected)
+		{
+			wheels_right(4);
+			pwmR = pwmR - 5;
+		}
+		else if(Rdiff < expected)
+		{
+			wheels_left(4);
+			pwmR = pwmR + 5;
 
+		}
 	}
+	else
+	{
+		if(Ldiff > expected)
+		{
+			wheels_right(4);
+			pwmL = pwmL - 5;
+		}
+		else if(Ldiff < expected)
+		{
+			wheels_left(5);
+			pwmL = pwmL + 5;
+
+		}
+
+		if(Rdiff > expected)
+		{
+			wheels_left(4);
+			pwmR = pwmR - 5;
+		}
+		else if(Rdiff < expected)
+		{
+			wheels_right(4);
+			pwmR = pwmR + 5;
+
+		}
+	}
+//	int16_t actual_gyro = gyro[2];
+//	if(actual_gyro < expected_gyro)
+//	{
+//		wheels_left(10);
+//		wheels_straight();
+//	}
+//	else if (actual_gyro > expected_gyro)
+//	{
+//		wheels_right(20);
+//		wheels_straight();
+//	}
+
+
 
 }
 
 void outdoor_fakePID()
 {
+//	if(gyro[2] > 50)
+//	{
+//		wheels_right(8);
+//		osDelay(80);
+//		wheels_straight();
+//	}
+//	else if (gyro[2] < -50)
+//	{
+//		wheels_left(5);
+//		osDelay(80);
+//		wheels_straight();
+//	}
 	int expected;
 	expected = 1800;
 
-	if(Ldiff > expected)
+	if(direction == 1)
 	{
-		wheels_left(4);
-		pwmL = pwmL - 5;
-	}
-	else if(Ldiff < expected)
-	{
-		wheels_right(5);
-		pwmL = pwmL + 5;
+		if(Ldiff > expected)
+		{
+			wheels_left(4);
+			pwmL = pwmL - 5;
+		}
+		else if(Ldiff < expected)
+		{
+			wheels_right(10);
+			pwmL = pwmL + 5;
 
-	}
+		}
 
-	if(Rdiff > expected)
-	{
-		wheels_right(4);
-		pwmR = pwmR - 5;
-	}
-	else if(Rdiff < expected)
-	{
-		wheels_left(4);
-		pwmR = pwmR + 5;
+		if(Rdiff > expected)
+		{
+			wheels_right(10);
+			pwmR = pwmR - 5;
+		}
+		else if(Rdiff < expected)
+		{
+			wheels_left(4);
+			pwmR = pwmR + 5;
 
+		}
+	}
+	else
+	{
+		if(Ldiff > expected)
+		{
+			wheels_right(10);
+			pwmL = pwmL - 5;
+		}
+		else if(Ldiff < expected)
+		{
+			wheels_left(5);
+			pwmL = pwmL + 5;
+
+		}
+
+		if(Rdiff > expected)
+		{
+			wheels_left(4);
+			pwmR = pwmR - 5;
+		}
+		else if(Rdiff < expected)
+		{
+			wheels_right(10);
+			pwmR = pwmR + 5;
+
+		}
 	}
 
 }
@@ -1499,7 +2232,7 @@ void motor_stop()
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
 	 __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0);
 
-	 //wheels_straight();
+	 wheels_straight();
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -1621,10 +2354,10 @@ void show(void *argument)
     OLED_Refresh_Gram();
     osDelay(10);
 
-    sprintf(Distance_travelled,"Dist_Tr: %d\0",distance);
-    OLED_ShowString(10, 20, Distance_travelled);
-    OLED_Refresh_Gram();
-    osDelay(10);
+//    sprintf(Distance_travelled,"Dist_Tr: %d\0",distance);
+//    OLED_ShowString(10, 20, Distance_travelled);
+//    OLED_Refresh_Gram();
+//    osDelay(10);
 
 	OLED_ShowString(10,30,aRxBuffer);
 	OLED_Refresh_Gram();
@@ -1646,8 +2379,8 @@ void show(void *argument)
 		OLED_ShowString(10, 40, Mode);
 		osDelay(100);
 	}
-    sprintf(ultra,"UDistance:%5d\0",F_Distance);
-    OLED_ShowString(10,50,ultra);
+	sprintf(ultra,"UDistance:%5d\0",F_Distance);
+	OLED_ShowString(10,50,ultra);
     OLED_Refresh_Gram();
     osDelay(10);
   }
@@ -1756,13 +2489,13 @@ void encoder_task(void *argument)
 		 }
 
 	  	  sprintf(Ltemp, "LSpeed: %5d\0",Ldiff);
-		  //OLED_ShowString(10,30,Ltemp);
+		  //OLED_ShowString(10,20,Ltemp);
 //		  Ldir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2);
 //		  sprintf(Ltemp, "LDir: %5d \0", Ldir);
 //		  OLED_ShowString(10,30, Ltemp);
 //
 		  sprintf(Rtemp, "RSpeed: %5d\0",Rdiff);
-		  //OLED_ShowString(10,40,Rtemp);
+		  //OLED_ShowString(10,30,Rtemp);
 		  Rdir = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
 
 //		  sprintf(Rtemp, "RDir: %5d \0", Rdir);
@@ -1781,6 +2514,12 @@ void encoder_task(void *argument)
 
   }
   /* USER CODE END encoder_task */
+}
+
+void test_encoder_distance()
+{
+
+
 }
 
 /* USER CODE BEGIN Header_ultra_sonic_task */
@@ -1838,6 +2577,7 @@ void Motor_Task(void *argument)
 				case 'F'://MOVE FORWARD
 					if(motor_case != 'F' && flag != '1'){break;}
 					flag = '0';
+					direction = 1;
 					move_forward_indoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1845,6 +2585,7 @@ void Motor_Task(void *argument)
 				case 'B'://MOVE BACKWARD
 					if(motor_case != 'B'&& flag!='1'){break;}
 					flag = '0';
+					direction = 0;
 					move_backward_indoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1880,7 +2621,9 @@ void Motor_Task(void *argument)
 				case 4: //INDOOR FORWARD
 					osDelay(2000);
 					if(motor_case != 4){break;}
-					distance = 2000;
+					distance = 100;
+					direction = 1;
+					expected_gyro = gyro[2];
 					move_forward_indoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1888,7 +2631,8 @@ void Motor_Task(void *argument)
 				case 5://INDOOR BACKWARDS
 					osDelay(2000);
 					if(motor_case != 5){break;}
-					distance = 2000;
+					distance = 1000;
+					direction = 0;
 					move_backward_indoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1920,6 +2664,7 @@ void Motor_Task(void *argument)
 				case 'F'://MOVE FORWARD
 					if(motor_case != 'F' && flag != '1'){break;}
 					flag = '0';
+					direction = 1;
 					move_forward_outdoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1927,6 +2672,7 @@ void Motor_Task(void *argument)
 				case 'B'://MOVE BACKWARD
 					if(motor_case != 'B'&& flag!='1'){break;}
 					flag = '0';
+					direction = 0;
 					move_backward_outdoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1957,11 +2703,13 @@ void Motor_Task(void *argument)
 					outdoor_three_point_turnL();
 					motor_case =0;
 					break;
-			/*------------------------Calculate Distance-------------------------------------------------------------------------------------------*/
+			/*----------------------	CalculateDistance------------------------------------------------------------------------------------------*/
 				case 4:
 					osDelay(2000);
 					if(motor_case != 4){break;}
-					distance = 2000;
+					distance = 1000;
+					osDelay(20);
+					direction = 1;
 					move_forward_outdoor_dist(distance);
 					motor_case =0;
 					break;
@@ -1969,15 +2717,22 @@ void Motor_Task(void *argument)
 				case 5:
 					osDelay(2000);
 					if(motor_case != 5){break;}
-					distance = 2000;
+					distance = 1000;
+					direction = 0;
 					move_backward_outdoor_dist(distance);
 					motor_case =0;
 					break;
 
 			/*------------------------ASSESSMENT FOR TASK_2 150 CM (OUTDOOR)---------------------------------------------------*/
 				case 1:
+					osDelay(2000);
+					if(motor_case !=1){break;}
+					direction = 1;
+					test_encoder_distance();
 					osDelay(10);
+					motor_case = 0;
 					break;
+
 
 				default:
 					wheels_straight();
@@ -1986,11 +2741,61 @@ void Motor_Task(void *argument)
 					break;
 		  }
 	  }
-	osDelay(100);
+	osDelay(10);
 	flag = '1';
 
   }
   /* USER CODE END Motor_Task */
+}
+
+/* USER CODE BEGIN Header_ICM_20948_Task */
+/**
+* @brief Function implementing the ICM_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_ICM_20948_Task */
+void ICM_20948_Task(void *argument)
+{
+  /* USER CODE BEGIN ICM_20948_Task */
+  /* Infinite loop */
+	ICMInit();
+	osDelay(100);
+
+	uint8_t whoami;
+	ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0);
+	whoami = ICMReadOneByte(0u);
+	while(whoami != 0xea)
+	{
+		sprintf(icmTempMsg,"whoami: %x",whoami);
+		//OLED_ShowString(10, 20, icmTempMsg);
+	}
+
+  for(;;)
+  {
+	  //vTaskDelayUntil(&lastWakeTime, 0.01);
+  	if(Deviation_Count<CONTROL_DELAY)
+	{
+		Deviation_Count++;
+		memcpy(Deviation_gyro,gyro,sizeof(gyro));
+	}
+	  //Get acceleration sensor data
+//	  ICMAccelRead(&accel[0], &accel[1], &accel[2]);
+	  //Get gyroscope data
+  	//ICMWriteOneByte(REG_ADD_REG_BANK_SEL, REG_VAL_REG_BANK_0);
+	MPU_Get_Gyroscope();
+
+
+	sprintf(icmTempMsg,"%+05d",gyro[2]);
+	OLED_ShowString(10, 30, icmTempMsg);
+
+
+	  //Get magnetometer data
+//	  ICMMagRead(&magnet[0], &magnet[1], &magnet[2]);
+//	  sprintf(icmTempMsg,"%d %d %d      ",magnet[0],magnet[1],magnet[2]);
+	osDelay(10);
+  }
+  /* USER CODE END ICM_20948_Task */
 }
 
 /**
