@@ -68,28 +68,35 @@ class Main:
 
     
     @staticmethod
-    def getActualPos(obst_pos, expected_pos, robot_reference_distance: float, robot_reference_angle:float):
+    def getActualPos(obstacles, obst_pos, expected_pos, robot_reference_distance: float, robot_reference_angle:float):
         
         if (robot_reference_distance == float("inf") or robot_reference_angle == float("inf")):
             return expected_pos
         
         robot_reference_angle -= float(45)
+        robot_reference_distance = robot_reference_distance/float(grid_cell_size)
         obs_x_loc, obs_y_loc, obs_dir = obst_pos
-        # TODO: Update w actual pos logic
-        if obs_dir == "S":
-            robot_x_loc = float(obs_x_loc) - round(float(robot_reference_distance/10)*math.sin(math.radians(float(robot_reference_angle))))
-            robot_y_loc = float(obs_y_loc) + 1 + round(float(robot_reference_distance/10)*math.cos(math.radians(float(robot_reference_angle))))
-        elif obs_dir == "N":
-            robot_x_loc = float(obs_x_loc) + round(float(robot_reference_distance/10)*math.sin(math.radians(float(robot_reference_angle))))
-            robot_y_loc = float(obs_y_loc) - 1 - round(float(robot_reference_distance/10)*math.cos(math.radians(float(robot_reference_angle))))
-        elif obs_dir == "W":
-            robot_x_loc = float(obs_x_loc) - 1 - round(float(robot_reference_distance/10)*math.cos(math.radians(float(robot_reference_angle))))
-            robot_y_loc = float(obs_y_loc) - round(float(robot_reference_distance/10)*math.sin(math.radians(float(robot_reference_angle))))
-        else:
-            robot_x_loc = float(obs_x_loc) + 1 + round(float(robot_reference_distance/10)*math.cos(math.radians(float(robot_reference_angle))))
-            robot_y_loc = float(obs_y_loc) + round(float(robot_reference_distance/10)*math.sin(math.radians(float(robot_reference_angle))))
         
-        return [int(robot_x_loc), int(robot_y_loc), expected_pos[2]]
+        if obs_dir == "S":
+            robot_x_loc = float(obs_x_loc) + robot_reference_distance*math.cos(math.radians(robot_reference_angle))
+            robot_y_loc = float(obs_y_loc) - robot_reference_distance*math.sin(math.radians(robot_reference_angle))
+        elif obs_dir == "N":
+            robot_x_loc = float(obs_x_loc) - robot_reference_distance*math.cos(math.radians(robot_reference_angle))
+            robot_y_loc = float(obs_y_loc) + robot_reference_distance*math.sin(math.radians(robot_reference_angle))
+        elif obs_dir == "W":
+            robot_x_loc = float(obs_x_loc) - robot_reference_distance*math.sin(math.radians(robot_reference_angle))
+            robot_y_loc = float(obs_y_loc) - robot_reference_distance*math.cos(math.radians(robot_reference_angle))
+        else:
+            robot_x_loc = float(obs_x_loc) + robot_reference_distance*math.sin(math.radians(robot_reference_angle))
+            robot_y_loc = float(obs_y_loc) + robot_reference_distance*math.cos(math.radians(robot_reference_angle))
+        
+        pos = [int(robot_x_loc), int(robot_y_loc), expected_pos[2]]
+        maze = Maze()
+        maze.setObstacles(obstacles)
+        if not maze.posIsValid(pos):
+            return expected_pos
+
+        return pos
 
 
     def getTarget(self):
@@ -110,9 +117,9 @@ class Main:
         if self.visited != 0:
             prev_target = self.obstacles[self.visit_order[self.visited-1]]
             expected_pos = self.waypoints[self.visit_order[self.visited-1]]
-            self.curr_pos = Main.getActualPos(prev_target, expected_pos, dist_from_obst, angle_from_obst)
+            self.curr_pos = Main.getActualPos(self.obstacles, prev_target, expected_pos, dist_from_obst, angle_from_obst)
             if (expected_pos != self.curr_pos):
-                print("Readjusting, expected at: {}, actually at: {}".format(expected_pos, self.curr_pos))
+                print("Readjusting, expected at: {}, actually at: {}".format(Main.processAlgoCoords(expected_pos), Main.processAlgoCoords(self.curr_pos)))
 
 
         path = None
