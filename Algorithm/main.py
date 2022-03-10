@@ -10,7 +10,7 @@ def_start_pos = [2,2,NORTH]
 # 9th march test run obst: [[8,13,'W'], [11,17,'S'],[15,15,'S'], [17,6,'W'],[2,19,'S'],[11,5,'N']]
 
 # 10th march test run obst
-test_obstacles = [[19,17,'S'], [7, 11,'E'], [14,15,'W'], [19,4,'W'], [12,5,'E'], [6,7,'S']]
+test_obstacles = [[7,11,'W'],[12,5,'W'], [14,15,'S'], [19,17,'S'],[19,4,'N'],[2,17,'S'],[5,7,'S'],[11,14,'S']]
 
 class Main:
 
