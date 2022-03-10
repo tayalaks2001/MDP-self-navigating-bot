@@ -18,8 +18,8 @@ class Node():
         self.h = 0
         self.f = 0
 
-    def __eq__(self, other):
-        return self.position == other.position
+    # def __eq__(self, other):
+    #     return self.position == other.position
     
     def __lt__(self, other):
         return self.f < other.f
@@ -123,7 +123,7 @@ class ShortestPath:
             closed_list.add(tuple(current_node.position))
 
             # Found the goal
-            if current_node == end_node:
+            if current_node.position == end_node.position:
                 path = []
                 current = current_node
                 while current.prev_move is not None:
@@ -138,6 +138,9 @@ class ShortestPath:
                 # get new possible child node
                 child = ShortestPath.getChildNode(current_node, move)
                 if (move == 'R' or move == 'L'):
+                    child.g = 30
+
+                if (move == 'B'):
                     child.g = 10
 
                 # Get node position
@@ -162,7 +165,7 @@ class ShortestPath:
                     continue
 
                 # Create the f, g, and h values
-                child.g = current_node.g + 1
+                child.g += current_node.g + 1
                 # Using manhattan distance as heuristic
                 child.h = abs(child.position[0] - end_node.position[0]) + abs(child.position[1] - end_node.position[1])
                 child.f = child.g + child.h
@@ -170,8 +173,8 @@ class ShortestPath:
                 # Child is already in the open list
                 for idx in range(len(open_list)):
                     open_node = open_list[idx]
-                    if child == open_node:
-                        if child.g < open_node.g:
+                    if child.position == open_node.position:
+                        if child.f < open_node.f:
                             open_list.pop(idx)
                             open_list.append(child)
                             heapq.heapify(open_list)

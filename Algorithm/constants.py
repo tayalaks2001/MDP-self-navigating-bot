@@ -20,7 +20,7 @@ grid_cell_size = 10
 car_width = 30
 car_height = 30
 
-turning_dist = 30
+turning_dist = 20
 
 
 
