@@ -7,9 +7,11 @@ import math
 
 # Below values defined according to android coord system i.e. (1,1) at bottom left of grid
 def_start_pos = [2,2,NORTH]
-test_obstacles = [[8,7,'E'], [14,11,'S'],[2,18,'S']]
-# 18,1,n
-# 18,9,s, 7,16,s, 8,1,n
+# 9th march test run obst: [[8,13,'W'], [11,17,'S'],[15,15,'S'], [17,6,'W'],[2,19,'S'],[11,5,'N']]
+
+# 10th march test run obst
+test_obstacles = [[19,17,'S'], [7, 11,'E'], [14,15,'W'], [19,4,'W'], [12,5,'E'], [6,7,'S']]
+
 class Main:
 
     def __init__(self, start_pos = def_start_pos, obstacles = test_obstacles, dist_from_obst = float("inf"), angle_of_obst = float("inf")):
