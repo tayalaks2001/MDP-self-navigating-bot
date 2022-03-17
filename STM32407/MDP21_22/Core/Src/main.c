@@ -264,7 +264,7 @@ int task2_index = 0;
 
 /*UART Variables*/
  uint8_t buffer_byte;
- uint8_t aRxBuffer[5] = {0};
+ uint8_t aRxBuffer[3] = {0};
  uint8_t aTxBuffer[1]= {0};
  uint8_t buffer_indx = 0;
 uint8_t uart_ready = 1;
@@ -1320,364 +1320,215 @@ void wheels_adjust()
 
 
 /*---------------------------------------Week 9 Task(Indoor)-------------------------------------------------------*/
-void indoor_task2_90cm()
-{
-	//80 cm from start to first entry
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(400);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2700);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(100); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4700);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(750);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//MOVE FORWARD TO MOVE TOWARDS START
-//	move_forward_indoor_dist(100);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(400);
-}
-
 void indoor_task2_80cm()
 {
-	//80 cm from start to first entry
-	task2_index = 1;
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(300);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2700);
-//	//GO FORWARD ABIT//
-	move_forward_indoor_dist(80); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-////	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-////	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4700);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(750);
-////	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-////	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-////	//MOVE FORWARD TO MOVE TOWARDS START
-//	move_forward_indoor_dist(100);
-////	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2700);
-////	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(200);
+	wheels_adjust();
+	wheels_left(16);
+	move_forward_encoder(700, 3000,3900);
+	motor_stop();
+	indoor_move_90turnR(120, 8200);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 7400);
+	move_forward_encoder(220, 3000, 3000);
+	wheels_left(22);
+	move_forward_encoder(100, 3000, 3000);
+}
+
+void indoor_task2_90cm()
+{
+	wheels_adjust();
+	wheels_left(14);
+	move_forward_encoder(800, 3000,3800);
+	motor_stop();
+	indoor_move_90turnR(120, 8200);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 7200);
+	move_forward_encoder(300, 3000, 3000);
+	wheels_left(19);
+	move_forward_encoder(90, 3000, 3000);
 }
 
 void indoor_task2_100cm()
 {
 
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(500);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2800);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(190); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	move_forward_indoor_dist(50);
-	indoor_move_90turnR(120, 4400);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(900);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(100);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,3000);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(600);
+	wheels_adjust();
+	wheels_left(12);
+	move_forward_encoder(900, 3000,3810);
+	motor_stop();
+	indoor_move_90turnR(120, 8000);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6900);
+	move_forward_encoder(440, 3000, 3000);
+	wheels_left(17);
+	move_forward_encoder(150, 3000, 3000);
 }
 
 void indoor_task2_110cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(600);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2700);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(100); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(850);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//MOVE FORWARD TO MOVE TOWARDS START
-//	move_forward_indoor_dist(100);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(620);
-
+	wheels_adjust();
+	wheels_left(11);
+	move_forward_encoder(1000, 3000,3700);
+	motor_stop();
+	indoor_move_90turnR(120, 7900);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6900);
+	move_forward_encoder(530, 3000, 3000);
+	wheels_left(17);
+	move_forward_encoder(180, 3000, 3000);
 }
 
 void indoor_task2_120cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(730);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2700);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(130); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(850);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4300);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(100);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(650);
+	wheels_adjust();
+	wheels_left(10);
+	move_forward_encoder(1100, 3000,3700);
+	motor_stop();
+	indoor_move_90turnR(120, 7800);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(500, 3000, 3000);
+	wheels_left(16);
+	move_forward_encoder(220, 3000, 3000);
 }
 
 
 void indoor_task2_130cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(830);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2700);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(130); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4400);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(850);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4400);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(100);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(720);
+	wheels_adjust();
+	wheels_left(9);
+	move_forward_encoder(1200, 3000,3650);
+	motor_stop();
+	indoor_move_90turnR(120, 7700);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(580, 3000, 3000);
+	wheels_left(17);
+	move_forward_encoder(200, 3000, 3600);
 }
 void indoor_task2_140cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(930);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2700);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(130); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4200);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(850);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4500);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(150);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(820);
+	wheels_adjust();
+	wheels_left(9);
+	move_forward_encoder(1250, 3000,3700);
+	motor_stop();
+	indoor_move_90turnR(120, 7400);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(530, 3000, 3000);
+	wheels_left(16);
+	move_forward_encoder(370, 3000, 3000);
 }
 
 void indoor_task2_150cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(1000);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2800);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(190); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4400);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(900);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4500);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(170);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,3000);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(950);
+	wheels_adjust();
+	wheels_left(8);
+	move_forward_encoder(1400, 3000,3600);
+	motor_stop();
+	indoor_move_90turnR(120, 7400);
+//	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(550, 3000, 3000);
+	wheels_left(15);
+	move_forward_encoder(470, 3000, 3400);
 }
 
 void indoor_task2_160cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(1050);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2900);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(150); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4200);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(800);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4500);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(150);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(1020);
+	wheels_adjust();
+	wheels_left(8);
+	move_forward_encoder(1500, 3000,3250);
+	motor_stop();
+	indoor_move_90turnR(120, 7200);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(300, 3000, 3000);
+	wheels_left(14);
+	move_forward_encoder(800, 3000, 3000);
 
 }
 
 void indoor_task2_170cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(1100);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2900);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(150); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4200);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(800);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4500);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(150);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(1120);
+	wheels_adjust();
+	wheels_left(7);
+	move_forward_encoder(1700, 3000,3350);
+	motor_stop();
+	indoor_move_90turnR(120, 7000);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(300, 3000, 3000);
+	wheels_left(12);
+	move_forward_encoder(900, 3000, 3200);
 }
-
 void indoor_task2_180cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(1200);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2900);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(150); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4400);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(800);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4500);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(150);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(1220);
+	wheels_adjust();
+	wheels_left(7);
+	move_forward_encoder(1750, 3000,3200);
+	motor_stop();
+	indoor_move_90turnR(120, 7000);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(200, 3000, 3000);
+	wheels_left(10);
+	move_forward_encoder(1000, 3000, 3200);
 
 }
 
 void indoor_task2_190cm()
 {
-	//GO STRAIGHT FROM START/
-	move_forward_indoor_dist(1300);
-	//ultra_forward_indoor_dist();
-	//TURN LEFT //
-	indoor_move_90turnL(50,2600);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(150); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRST ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4400);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(800);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4500);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(130);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,3000);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(1320);
-
+	wheels_adjust();
+	wheels_left(6);
+	move_forward_encoder(1780, 3000,3450);
+	motor_stop();
+	indoor_move_90turnR(120, 7100);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(200, 3000, 3000);
+	wheels_left(10);
+	move_forward_encoder(1000, 3000, 3500);
 }
 
 
 void indoor_task2_200cm()
 {
-	/*GO STRAIGHT FROM START*/
-	move_forward_indoor_dist(1400);
-	//TURN LEFT //
-	indoor_move_90turnL(50,2600);
-	//GO FORWARD ABIT//
-	move_forward_indoor_dist(150); // CAR TOO CLOSE TO OBSTACLE ON FIRST ENTRY//CHECK
-	//RIGHT TURN TO ENTER FIRS6T ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT FIRST ENTRY
-	indoor_move_90turnR(120, 4300);
-	// GO TO NEXT ENTRY
-	move_forward_indoor_dist(800);
-	// RIGHT TURN TO ENTER SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//RIGHT TURN TO EXIT SECOND ENTRY
-	indoor_move_90turnR(120, 4600);
-	//MOVE FORWARD TO MOVE TOWARDS START
-	move_forward_indoor_dist(80);
-	//LEFT TURN TO RETURN BACK TO START
-	indoor_move_90turnL(50,2900);
-	//MOVE_BACK TO BASE
-	move_forward_indoor_dist(1400);
+	wheels_adjust();
+	wheels_left(6);
+	move_forward_encoder(1800, 3000, 3290);
+	motor_stop();
+	indoor_move_90turnR(120, 6800);
+	motor_stop();
+	move_forward_encoder(620,3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
+	move_forward_encoder(350, 3000, 3000);
+	wheels_left(9);
+	move_forward_encoder(1100, 3000, 3150);
 
 }
 
@@ -1927,10 +1778,9 @@ void move_forward_indoor_dist(int distance_mm)
 	osDelay(1);
 }
 
-move_forward_encoder( int distance_mm, int pwmL1, int pwmR1)
+void move_forward_encoder(int distance_mm, int pwmL1, int pwmR1)
 {
 	osDelay(10);
-
 	//LEFT WHEELS
 	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
@@ -2930,8 +2780,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	   osDelay(100);
    }
    motor_case = aRxBuffer[0];
-   distance = ((uint16_t)(aRxBuffer[1]-48))*1000 + (uint16_t)(aRxBuffer[2]-48)*100 + ((uint16_t)aRxBuffer[3]-48)*10 + ((uint16_t)aRxBuffer[4]-48);
-   HAL_UART_Receive_DMA(&huart3, aRxBuffer,5);
+   task2_index = ((uint16_t)aRxBuffer[1]-48)*10 + ((uint16_t)aRxBuffer[2]-48);
+   HAL_UART_Receive_DMA(&huart3, aRxBuffer,3);
 }
 
 
@@ -2996,9 +2846,9 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
 
-   HAL_UART_Receive_DMA(&huart3, aRxBuffer, 5);
+   HAL_UART_Receive_DMA(&huart3, aRxBuffer, 3);
    osDelay(100);
-   HAL_UART_Transmit_DMA(&huart3, aTxBuffer, 1);
+   //HAL_UART_Transmit_DMA(&huart3, aTxBuffer, 1);
   for(;;)
   {
 	  if(HAL_GPIO_ReadPin(User_btn_GPIO_Port, User_btn_Pin)==0)
@@ -3253,95 +3103,35 @@ void Motor_Task(void *argument)
 					motor_stop();
 					wheels_straight();
 					break;
-			/*---------------------------MOTOR FORWARD-------------------------------------------------*/
-				case 'F'://MOVE FORWARD
-					if(motor_case != 'F' && flag != '1'){break;}
-					flag = '0';
-					direction = 1;
-					move_forward_indoor_dist(distance);
-					motor_case =0;
-					break;
-			/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
-				case 'B'://MOVE BACKWARD
-					if(motor_case != 'B'&& flag!='1'){break;}
-					flag = '0';
-					direction = 0;
-					//move_backward_indoor_dist(distance);
-					motor_case =0;
-					break;
-			/*---------------------------MOTOR 90 LEFT-------------------------------------------------*/
-				case 'L':
-					if(motor_case != 'L' && flag != '1'){break;}
-					flag = '0';
-					//indoor_three_point_turnL();
-					motor_case =0;
-					break;
-				/*---------------------------MOTOR 90 RIGHT-------------------------------------------------*/
-				case 'R':
-					if(motor_case != 'R' && flag !='1'){break;}
-					flag = '0';
-					//indoor_three_point_turnR();
-					motor_case =0;
-					break;
-				/*-------------------------CALCULATE TURNING RADIUS(TURN RIGHT/LEFT) -------------------------------------------------------------------------*/
-				case 2:
-					osDelay(2000);
-					if(motor_case != 2){break;}
-					indoor_move_90turnR(120, 4600);
-					motor_case =0;
+
+				case 'G':
+					if(motor_case!='G'){break;}
+					move_forward_encoder(2800,3000,3000);
+					motor_case = 0;
 					break;
 
-				case 3:
-					osDelay(2000);
-					if(motor_case != 3){break;}
-					//indoor_move_90turnL(50,2700);
-					motor_case =0;
-					break;
 			/*------------------------Calculate Distance-------------------------------------------------------------------------------------------*/
-				case 4: //INDOOR FORWARD
-					osDelay(2000);
-					if(motor_case != 4){break;}
-					task2_index = 19;
-					if(task2_index == 1)indoor_task2_80cm();
-//					else if(task2_index == 2)indoor_task2_90cm();
-//					else if(task2_index == 3)indoor_task2_100cm();
-//					else if(task2_index == 4)indoor_task2_110cm();
-//					else if(task2_index == 5)indoor_task2_120cm();
-//					else if(task2_index == 6)indoor_task2_130cm();
-//					else if(task2_index == 7)indoor_task2_140cm();
-//					else if(task2_index == 8)indoor_task2_150cm();
-//					else if(task2_index == 9)indoor_task2_160cm();
-//					else if(task2_index == 10)indoor_task2_170cm();
-//					else if(task2_index == 11)indoor_task2_180cm();
-//					else if(task2_index == 12)indoor_task2_190cm();
-//					else if(task2_index == 13)indoor_task2_200cm();
-					else if(task2_index == 14)outdoor_task2_200cm();
-					else if(task2_index == 15)outdoor_task2_190cm();
-					else if(task2_index == 16)outdoor_task2_180cm();
-					else if(task2_index == 17)outdoor_task2_170cm();
-					else if(task2_index == 18)outdoor_task2_160cm();
-					else if(task2_index == 19)outdoor_task2_150cm();
-					else if(task2_index == 20)outdoor_task2_140cm();
-					else if(task2_index == 21)outdoor_task2_130cm();
-					else if(task2_index == 22)outdoor_task2_120cm();
-					else if(task2_index == 23)outdoor_task2_110cm();
-					else if(task2_index == 24)outdoor_task2_100cm();
-					else if(task2_index == 25)outdoor_task2_90cm();
-					else if(task2_index == 26)outdoor_task2_80cm();
+				case 'F': //INDOOR TASK2
+					osDelay(100);
+					if(motor_case != 'F'){break;}
+					//task2_index = 19;
+					if(task2_index == 8)indoor_task2_80cm();
+					else if(task2_index == 9)indoor_task2_90cm();
+					else if(task2_index == 10)indoor_task2_100cm();
+					else if(task2_index == 11)indoor_task2_110cm();
+					else if(task2_index == 12)indoor_task2_120cm();
+					else if(task2_index == 13)indoor_task2_130cm();
+					else if(task2_index == 14)indoor_task2_140cm();
+					else if(task2_index == 15)indoor_task2_150cm();
+					else if(task2_index == 16)indoor_task2_160cm();
+					else if(task2_index == 17)indoor_task2_170cm();
+					else if(task2_index == 18)indoor_task2_180cm();
+					else if(task2_index == 19)indoor_task2_190cm();
+					else if(task2_index == 20)indoor_task2_200cm();
 					motor_case =0;
 					break;
 
 			/*------------------------ASSESSMENT FOR TASK_2---------------------------------------------------*/
-				case 1:
-					osDelay(2000);
-					if(motor_case != 1){break;}
-					//move_forward_indoor_dist(8000);
-					//move_forward_encoder(1000);
-					motor_case =0;
-					osDelay(10);
-					break;
-
-
 				default:
 					wheels_straight();
 					motor_stop();
@@ -3362,65 +3152,22 @@ void Motor_Task(void *argument)
 					break;
 			/*---------------------------MOTOR FORWARD-------------------------------------------------*/
 				case 'F'://MOVE FORWARD
-					if(motor_case != 'F' && flag != '1'){break;}
-					flag = '0';
-					direction = 1;
-					//move_forward_outdoor_dist(distance);
-					//move_forward_increment(distance);
-					motor_case =0;
-					break;
-			/*---------------------------MOTOR BACKWARD-------------------------------------------------*/
-				case 'B'://MOVE BACKWARD
-					if(motor_case != 'B'&& flag!='1'){break;}
-					flag = '0';
-					direction = 0;
-					//move_backward_outdoor_dist(distance);
-					//move_backward_increment(distance);
-					motor_case =0;
-					break;
-			/*---------------------------MOTOR 90 LEFT-------------------------------------------------*/
-				case 'L':
-					if(motor_case != 'L' && flag != '1'){break;}
-					flag = '0';
-					//outdoor_three_point_turnL();
-					motor_case =0;
-					break;
-				/*---------------------------MOTOR 90 RIGHT-------------------------------------------------*/
-				case 'R':
-					if(motor_case != 'R' && flag !='1'){break;}
-					flag = '0';
-					//outdoor_three_point_turnR();
-					motor_case =0;
-					break;
-				/*-------------------------CALCULATE TURNING RADIUS(TURN RIGHT/LEFT) -------------------------------------------------------------------------*/
-				case 2:
-					osDelay(2000);
-					if(motor_case != 2){break;}
-					motor_case =0;
-					break;
-				case 3:
-					osDelay(2000);
-					if(motor_case != 3){break;}
-					motor_case =0;
-					break;
-			/*----------------------	CalculateDistance------------------------------------------------------------------------------------------*/
-				case 4:
-					osDelay(2000);
-					if(motor_case != 4){break;}
-					distance = 2000;
-					osDelay(20);
-					direction = 1;
-					move_forward_outdoor_dist(distance);
-					motor_case =0;
-					break;
-
-				case 5:
-					osDelay(2000);
-					if(motor_case != 5){break;}
-					distance = 1000;
-					direction = 0;
-					//move_backward_outdoor_dist(distance);
-					motor_case =0;
+					if(motor_case != 'F'){break;}
+					//task2_index = 19;
+					if(task2_index == 8)outdoor_task2_80cm();
+					else if(task2_index == 9)outdoor_task2_90cm();
+					else if(task2_index == 10)outdoor_task2_100cm();
+					else if(task2_index == 11)outdoor_task2_110cm();
+					else if(task2_index == 12)outdoor_task2_120cm();
+					else if(task2_index == 13)outdoor_task2_130cm();
+					else if(task2_index == 14)outdoor_task2_140cm();
+					else if(task2_index == 15)outdoor_task2_150cm();
+					else if(task2_index == 16)outdoor_task2_160cm();
+					else if(task2_index == 17)outdoor_task2_170cm();
+					else if(task2_index == 18)outdoor_task2_180cm();
+					else if(task2_index == 19)outdoor_task2_190cm();
+					else if(task2_index == 20)outdoor_task2_200cm();
+					motor_case = 0;
 					break;
 
 			/*------------------------ASSESSMENT FOR TASK_2 150 CM (OUTDOOR)---------------------------------------------------*/
@@ -3431,8 +3178,6 @@ void Motor_Task(void *argument)
 					osDelay(10);
 					motor_case = 0;
 					break;
-
-
 				default:
 					wheels_straight();
 					motor_stop();
@@ -3441,7 +3186,7 @@ void Motor_Task(void *argument)
 		  }
 	  }
 	osDelay(10);
-	flag = '1';
+	//flag = '1';
 
   }
   /* USER CODE END Motor_Task */
