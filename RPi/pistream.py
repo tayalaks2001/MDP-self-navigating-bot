@@ -51,13 +51,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.send_response(200)
             except Exception as e:
                 pass
-            self.send_header('Content-Type', 'text/html')
-            
             if len(sendData) == 0:
                 sendData = ''
             else:
                 sendData = sendData[0]
-            self.send_header('Content-Length', f'{len(sendData)}')
             self.end_headers()
             self.wfile.write(sendData.encode())
             try:
