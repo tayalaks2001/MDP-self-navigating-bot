@@ -1332,43 +1332,42 @@ void indoor_task2_80cm()
 	motor_stop();
 	indoor_move_90turnR(120, 7400);
 	move_forward_encoder(220, 3000, 3000);
-	wheels_left(22);
-	move_forward_encoder(100, 3000, 3000);
+	wheels_left(33);
+	move_forward_encoder(110, 3000, 3000);
 }
 
 void indoor_task2_90cm()
 {
 	wheels_adjust();
-	wheels_left(14);
-	move_forward_encoder(800, 3000,3800);
-	motor_stop();
-	indoor_move_90turnR(120, 8200);
-	motor_stop();
-	move_forward_encoder(620, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 7200);
-	move_forward_encoder(300, 3000, 3000);
-	wheels_left(19);
-	move_forward_encoder(90, 3000, 3000);
-}
-
-void indoor_task2_100cm()
-{
-
-	wheels_adjust();
-	wheels_left(12);
-	move_forward_encoder(900, 3000,3810);
+	wheels_left(16);
+	move_forward_encoder(700, 3000,3900);
 	motor_stop();
 	indoor_move_90turnR(120, 8000);
 	motor_stop();
 	move_forward_encoder(620, 3000, 3000);
 	motor_stop();
-	indoor_move_90turnR(120, 6900);
-	move_forward_encoder(440, 3000, 3000);
-	wheels_left(17);
-	move_forward_encoder(150, 3000, 3000);
+	indoor_move_90turnR(120, 7400);
+	move_forward_encoder(220, 3000, 3000);
+	wheels_left(35);
+	move_forward_encoder(110, 3000, 3000);
 }
 
+void indoor_task2_100cm()
+{
+	wheels_adjust();
+	wheels_left(14);
+	move_forward_encoder(800, 3000,3800);
+	motor_stop();
+	indoor_move_90turnR(120, 8000);
+	motor_stop();
+	move_forward_encoder(620, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 7200);
+	move_forward_encoder(300, 3000, 3000);
+	/*Return*/
+	wheels_left(35);
+	move_forward_encoder(120, 3000, 3000);
+}
 void indoor_task2_110cm()
 {
 	wheels_adjust();
@@ -1381,23 +1380,23 @@ void indoor_task2_110cm()
 	motor_stop();
 	indoor_move_90turnR(120, 6900);
 	move_forward_encoder(530, 3000, 3000);
-	wheels_left(17);
-	move_forward_encoder(180, 3000, 3000);
+	wheels_left(32);
+	move_forward_encoder(140, 3000, 3000);
 }
 
 void indoor_task2_120cm()
 {
 	wheels_adjust();
-	wheels_left(10);
+	wheels_left(9);
 	move_forward_encoder(1100, 3000,3700);
 	motor_stop();
-	indoor_move_90turnR(120, 7800);
+	indoor_move_90turnR(120, 7700);
 	motor_stop();
 	move_forward_encoder(620, 3000, 3000);
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
 	move_forward_encoder(500, 3000, 3000);
-	wheels_left(16);
+	wheels_left(22);
 	move_forward_encoder(220, 3000, 3000);
 }
 
@@ -1406,7 +1405,7 @@ void indoor_task2_130cm()
 {
 	wheels_adjust();
 	wheels_left(9);
-	move_forward_encoder(1200, 3000,3650);
+	move_forward_encoder(1100, 3000,3700);
 	motor_stop();
 	indoor_move_90turnR(120, 7700);
 	motor_stop();
@@ -1414,55 +1413,55 @@ void indoor_task2_130cm()
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
 	move_forward_encoder(580, 3000, 3000);
-	wheels_left(17);
+	wheels_left(24);
 	move_forward_encoder(200, 3000, 3600);
 }
 void indoor_task2_140cm()
 {
 	wheels_adjust();
 	wheels_left(9);
-	move_forward_encoder(1250, 3000,3700);
+	move_forward_encoder(1150, 3000,3650);
 	motor_stop();
 	indoor_move_90turnR(120, 7400);
 	motor_stop();
 	move_forward_encoder(620, 3000, 3000);
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(530, 3000, 3000);
-	wheels_left(16);
-	move_forward_encoder(370, 3000, 3000);
+	move_forward_encoder(580, 3000, 3000);
+	wheels_left(22);
+	move_forward_encoder(200, 3000, 3600);
 }
 
 void indoor_task2_150cm()
 {
 	wheels_adjust();
-	wheels_left(8);
-	move_forward_encoder(1400, 3000,3600);
+	wheels_left(9);
+	move_forward_encoder(1300, 3000,3200);
 	motor_stop();
-	indoor_move_90turnR(120, 7400);
-//	motor_stop();
+	indoor_move_90turnR(120, 7300);
+	motor_stop();
 	move_forward_encoder(620, 3000, 3000);
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(550, 3000, 3000);
-	wheels_left(15);
-	move_forward_encoder(470, 3000, 3400);
+	move_forward_encoder(530, 3000, 3000);
+	wheels_left(21);
+	move_forward_encoder(370, 3000, 3000);
 }
 
 void indoor_task2_160cm()
 {
 	wheels_adjust();
 	wheels_left(8);
-	move_forward_encoder(1500, 3000,3250);
+	move_forward_encoder(1400, 3000,3270);
 	motor_stop();
 	indoor_move_90turnR(120, 7200);
 	motor_stop();
-	move_forward_encoder(620, 3000, 3000);
+	move_forward_encoder(580, 3000, 3000);
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
 	move_forward_encoder(300, 3000, 3000);
-	wheels_left(14);
-	move_forward_encoder(800, 3000, 3000);
+	wheels_left(12);
+	move_forward_encoder(750, 3000, 3000);
 
 }
 
@@ -1470,7 +1469,7 @@ void indoor_task2_170cm()
 {
 	wheels_adjust();
 	wheels_left(7);
-	move_forward_encoder(1700, 3000,3350);
+	move_forward_encoder(1600, 3000,3370);
 	motor_stop();
 	indoor_move_90turnR(120, 7000);
 	motor_stop();
@@ -1478,7 +1477,7 @@ void indoor_task2_170cm()
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
 	move_forward_encoder(300, 3000, 3000);
-	wheels_left(12);
+	wheels_left(10);
 	move_forward_encoder(900, 3000, 3200);
 }
 void indoor_task2_180cm()
@@ -1510,7 +1509,7 @@ void indoor_task2_190cm()
 	motor_stop();
 	indoor_move_90turnR(120, 6650);
 	move_forward_encoder(200, 3000, 3000);
-	wheels_left(10);
+	wheels_left(9);
 	move_forward_encoder(1000, 3000, 3500);
 }
 
@@ -1519,227 +1518,19 @@ void indoor_task2_200cm()
 {
 	wheels_adjust();
 	wheels_left(6);
-	move_forward_encoder(1800, 3000, 3290);
-	motor_stop();
-	indoor_move_90turnR(120, 6800);
-	motor_stop();
-	move_forward_encoder(620,3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(350, 3000, 3000);
-	wheels_left(9);
-	move_forward_encoder(1100, 3000, 3150);
-
-}
-
-void outdoor_task2_80cm()
-{
-	wheels_adjust();
-	wheels_left(18);
-	move_forward_encoder(700, 3000,3900);
-	motor_stop();
-	indoor_move_90turnR(120, 8400);
-	motor_stop();
-	move_forward_encoder(760, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 7400);
-	move_forward_encoder(400, 3000, 3000);
-	wheels_left(19);
-	move_forward_encoder(100, 3000, 3000);
-}
-
-void outdoor_task2_90cm()
-{
-	wheels_adjust();
-	wheels_left(15);
-	move_forward_encoder(800, 3000,3900);
-	motor_stop();
-	indoor_move_90turnR(120, 8200);
-	motor_stop();
-	move_forward_encoder(760, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 7200);
-	move_forward_encoder(430, 3000, 3000);
-	wheels_left(15);
-	move_forward_encoder(150, 3000, 3000);
-}
-void outdoor_task2_100cm()
-{
-	wheels_adjust();
-	wheels_left(13);
-	move_forward_encoder(900, 3000,3900);
-	motor_stop();
-	indoor_move_90turnR(120, 8000);
-	motor_stop();
-	move_forward_encoder(760, 3000, 3000);
+	move_forward_encoder(1850, 3000,3350);
 	motor_stop();
 	indoor_move_90turnR(120, 6900);
-	move_forward_encoder(480, 3000, 3000);
-	wheels_left(14);
+	motor_stop();
+	move_forward_encoder(700, 3000, 3000);
+	motor_stop();
+	indoor_move_90turnR(120, 6650);
 	move_forward_encoder(200, 3000, 3000);
-}
-
-void outdoor_task2_110cm()
-{
-	wheels_adjust();
-	wheels_left(11);
-	move_forward_encoder(1000, 3000,4000);
-	motor_stop();
-	indoor_move_90turnR(120, 7900);
-	motor_stop();
-	move_forward_encoder(780, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6900);
-	move_forward_encoder(530, 3000, 3000);
-	wheels_left(14);
-	move_forward_encoder(270, 3000, 3000);
-}
-void outdoor_task2_120cm()
-{
-	wheels_adjust();
-	wheels_left(10);
-	move_forward_encoder(1100, 3000,3900);
-	motor_stop();
-	indoor_move_90turnR(120, 7700);
-	motor_stop();
-	move_forward_encoder(740, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(500, 3000, 3000);
-	wheels_left(14);
-	move_forward_encoder(300, 3000, 3000);
-}
-
-void outdoor_task2_130cm()
-{
-	wheels_adjust();
-	wheels_left(9);
-	move_forward_encoder(1200, 3000,3900);
-	motor_stop();
-	indoor_move_90turnR(120, 7600);
-	motor_stop();
-	move_forward_encoder(740, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(580, 3000, 3000);
-	wheels_left(14);
-	move_forward_encoder(320, 3000, 3000);
-}
-
-
-void outdoor_task2_140cm()
-{
-	wheels_adjust();
-	wheels_left(8);
-	move_forward_encoder(1300, 3000,3900);
-	motor_stop();
-	indoor_move_90turnR(120, 7400);
-	motor_stop();
-	move_forward_encoder(720, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(530, 3000, 3000);
-	wheels_left(12);
-	move_forward_encoder(500, 3000, 3000);
-}
-
-void outdoor_task2_150cm()
-{
-	wheels_adjust();
-	wheels_left(8);
-	move_forward_encoder(1400, 3000,3600);
-	motor_stop();
-	indoor_move_90turnR(120, 7400);
-//	motor_stop();
-	move_forward_encoder(720, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(550, 3000, 3000);
-	wheels_left(12);
-	move_forward_encoder(500, 3000, 3400);
-}
-
-void outdoor_task2_160cm()
-{
-	wheels_adjust();
-	wheels_left(8);
-	move_forward_encoder(1500, 3000,3400);
-	motor_stop();
-	indoor_move_90turnR(120, 7200);
-	motor_stop();
-	move_forward_encoder(720, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(600, 3000, 3000);
-	wheels_left(12);
-	move_forward_encoder(550, 3000, 3400);
-}
-
-void outdoor_task2_170cm()
-{
-	wheels_adjust();
-	wheels_left(8);
-	move_forward_encoder(1600, 3000,3300);
-	motor_stop();
-	indoor_move_90turnR(120, 7000);
-	motor_stop();
-	move_forward_encoder(750, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(600, 3000, 3000);
-	wheels_left(12);
-	move_forward_encoder(680, 3000, 3200);
-}
-
-void outdoor_task2_180cm()
-{
-	wheels_adjust();
-	wheels_left(8);
-	move_forward_encoder(1700, 3000,3200);
-	motor_stop();
-	indoor_move_90turnR(120, 7000);
-	motor_stop();
-	move_forward_encoder(750, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(550, 3000, 3000);
-	wheels_left(10);
-	move_forward_encoder(800, 3000, 3050);
-}
-
-void outdoor_task2_190cm()
-{
-	wheels_adjust();
 	wheels_left(7);
-	move_forward_encoder(1850, 3000,3200);
-	motor_stop();
-	indoor_move_90turnR(120, 7100);
-	motor_stop();
-	move_forward_encoder(800, 3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(480, 3000, 3000);
-	wheels_left(10);
-	move_forward_encoder(1000, 3000, 3050);
-
+	move_forward_encoder(1150, 3000, 3500);
 }
 
-void outdoor_task2_200cm()
-{
-	wheels_adjust();
-	wheels_left(7);
-	move_forward_encoder(2000, 3000, 3100);
-	motor_stop();
-	indoor_move_90turnR(120, 6900);
-	motor_stop();
-	move_forward_encoder(800,3000, 3000);
-	motor_stop();
-	indoor_move_90turnR(120, 6650);
-	move_forward_encoder(300, 3000, 3000);
-	wheels_left(9);
-	move_forward_encoder(1250, 3000, 3000);
 
-}
 
 void move_forward_indoor_dist(int distance_mm)
 {
@@ -1832,99 +1623,58 @@ void move_forward_encoder(int distance_mm, int pwmL1, int pwmR1)
 	wheels_adjust();
 }
 
-void ultra_forward_indoor_dist()
-{
-	pwmL = 4000;
-	pwmR = 4000;
-	osDelay(10);
-	wheels_adjust();
-	//LEFT WHEELS
-	HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-	//RIGHT WHEELS
-	HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
-
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-	osDelay(10);
-
-	//int t_needed = 1.1546*distance_mm - 96.835;
-	//int t_start = HAL_GetTick();
-    while(F_Distance >= 45)
-	{
-    	indoor_fakePID();
-    	if(F_Distance <=45)
-    	{
-    		break;
-    	}
-    	osDelay(100);
-    	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwmL);
-    	__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwmR);
-    	osDelay(10);
-
-	}
-	motor_stop();
-	osDelay(1);
-}
-
-void move_forward_outdoor_dist(int distance_mm)
-{
-
-}
 
 
 /*-----------------------------------Assessment Requirement----------------------------------------*/
 
 /*-----------------------------------Code for 3 point Turn ----------------------------------------*/
-//void indoor_three_point_turnR()
-//{
-//	move_indoor_forward_right(80,150);
-//	osDelay(500);
-//	move_indoor_backward_left(40, 100);
-//	osDelay(200);
-//	move_indoor_forward_right(55,180);
-//	osDelay(200);
-//	move_indoor_backward_left(45, 140);
-//	osDelay(200);
-//}
-//
-//void indoor_three_point_turnL()
-//{
-//	move_indoor_forward_left(45, 140);
-//	osDelay(200);
-//	move_indoor_backward_right(55, 180);
-//	osDelay(200);
-//	move_indoor_forward_left(40, 100);
-//	osDelay(200);
-//	move_indoor_backward_right(80,160);
-//	osDelay(200);
-//}
-//
-//void outdoor_three_point_turnR()
-//{
-//	move_outdoor_forward_right(80,150);
-//	osDelay(500);
-//	move_outdoor_backward_left(40, 100);
-//	osDelay(200);
-//	move_outdoor_forward_right(55,180);
-//	osDelay(200);
-//	move_outdoor_backward_left(45, 135);
-//	osDelay(200);
-//}
-//
-//void outdoor_three_point_turnL()
-//{
-//	move_outdoor_forward_left(45, 140);
-//	osDelay(200);
-//	move_outdoor_backward_right(55, 180);
-//	osDelay(200);
-//	move_outdoor_forward_left(40, 100);
-//	osDelay(200);
-//	move_outdoor_backward_right(80,158);
-//	osDelay(200);
-//}
+void indoor_three_point_turnR()
+{
+	move_indoor_forward_right(80,150);
+	osDelay(500);
+	move_indoor_backward_left(40, 100);
+	osDelay(200);
+	move_indoor_forward_right(55,180);
+	osDelay(200);
+	move_indoor_backward_left(45, 140);
+	osDelay(200);
+}
+
+void indoor_three_point_turnL()
+{
+	move_indoor_forward_left(45, 140);
+	osDelay(200);
+	move_indoor_backward_right(55, 180);
+	osDelay(200);
+	move_indoor_forward_left(40, 100);
+	osDelay(200);
+	move_indoor_backward_right(80,160);
+	osDelay(200);
+}
+
+void outdoor_three_point_turnR()
+{
+	move_outdoor_forward_right(80,150);
+	osDelay(500);
+	move_outdoor_backward_left(40, 100);
+	osDelay(200);
+	move_outdoor_forward_right(55,180);
+	osDelay(200);
+	move_outdoor_backward_left(45, 135);
+	osDelay(200);
+}
+
+void outdoor_three_point_turnL()
+{
+	move_outdoor_forward_left(45, 140);
+	osDelay(200);
+	move_outdoor_backward_right(55, 180);
+	osDelay(200);
+	move_outdoor_forward_left(40, 100);
+	osDelay(200);
+	move_outdoor_backward_right(80,158);
+	osDelay(200);
+}
 
 
 //void move_indoor_forward_right(uint8_t angle, int distance_mm)
@@ -3153,20 +2903,7 @@ void Motor_Task(void *argument)
 			/*---------------------------MOTOR FORWARD-------------------------------------------------*/
 				case 'F'://MOVE FORWARD
 					if(motor_case != 'F'){break;}
-					//task2_index = 19;
-					if(task2_index == 8)outdoor_task2_80cm();
-					else if(task2_index == 9)outdoor_task2_90cm();
-					else if(task2_index == 10)outdoor_task2_100cm();
-					else if(task2_index == 11)outdoor_task2_110cm();
-					else if(task2_index == 12)outdoor_task2_120cm();
-					else if(task2_index == 13)outdoor_task2_130cm();
-					else if(task2_index == 14)outdoor_task2_140cm();
-					else if(task2_index == 15)outdoor_task2_150cm();
-					else if(task2_index == 16)outdoor_task2_160cm();
-					else if(task2_index == 17)outdoor_task2_170cm();
-					else if(task2_index == 18)outdoor_task2_180cm();
-					else if(task2_index == 19)outdoor_task2_190cm();
-					else if(task2_index == 20)outdoor_task2_200cm();
+
 					motor_case = 0;
 					break;
 
